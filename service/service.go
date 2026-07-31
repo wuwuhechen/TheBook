@@ -1,6 +1,7 @@
 package service
 
 import (
+	"TheBook/config"
 	"TheBook/utils"
 	"encoding/json"
 	"fmt"
@@ -12,16 +13,21 @@ import (
 
 func InitSystem() (*gin.Engine, *QuestionServer, error) {
 	rootPath, err := utils.FindProjectRoot()
+
+	cfg, err := config.LoadConfig(fmt.Sprintf("%s/config/config.yaml", rootPath))
+
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to find project root: %v", err)
 	}
 
-	questionServer, err := DataInit(rootPath)
+	qsPath := fmt.Sprintf("%s/%s", rootPath, cfg.Database.DatabasePath)
+	questionServer, err := DataInit(qsPath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to initialize data: %v", err)
 	}
 
-	r, err := GinInit(rootPath, questionServer)
+	frontEndPath := fmt.Sprintf("%s/%s", rootPath, cfg.FrontEnd.TemplatePath)
+	r, err := GinInit(frontEndPath, questionServer)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to initialize Gin: %v", err)
 	}
@@ -29,10 +35,8 @@ func InitSystem() (*gin.Engine, *QuestionServer, error) {
 	return r, questionServer, nil
 }
 
-func DataInit(rootPath string) (*QuestionServer, error) {
-	questionFilePath := fmt.Sprintf("%s/database/data.json", rootPath)
-
-	questionServer, err := LoadQuestions(questionFilePath)
+func DataInit(path string) (*QuestionServer, error) {
+	questionServer, err := LoadQuestions(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load questions: %v", err)
 	}
@@ -40,11 +44,11 @@ func DataInit(rootPath string) (*QuestionServer, error) {
 	return questionServer, nil
 }
 
-func GinInit(rootPath string, questionServer *QuestionServer) (*gin.Engine, error) {
+func GinInit(path string, questionServer *QuestionServer) (*gin.Engine, error) {
 	r := gin.Default()
 
 	r.POST("/request", questionServer.HandlerPostSubmitAnswer)
-	r.LoadHTMLFiles(fmt.Sprintf("%s/front/question_page.html", rootPath))
+	r.LoadHTMLFiles(path)
 
 	return r, nil
 }
