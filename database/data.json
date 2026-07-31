@@ -1,0 +1,132 @@
+[
+  {
+    "id": 1,
+    "category": "Go语言",
+    "question": "Go语言中，下面哪个关键字用于声明一个新的goroutine？",
+    "choices": [
+      "thread",
+      "go",
+      "async",
+      "spawn"
+    ],
+    "answer": 1,
+    "analysis": "Go语言通过 go 关键字启动新的goroutine，例如 go func(){ }。"
+  },
+  {
+    "id": 2,
+    "category": "Go语言",
+    "question": "以下哪个不是Go语言中的基本数据类型？",
+    "choices": [
+      "int",
+      "string",
+      "array",
+      "map"
+    ],
+    "answer": 3,
+    "analysis": "map不是Go语言的基本数据类型，而是一种引用类型。基本类型包括整数、浮点数、字符串、布尔等。"
+  },
+  {
+    "id": 3,
+    "category": "数据结构",
+    "question": "栈(Stack)的数据结构特点是？",
+    "choices": [
+      "先进先出",
+      "后进先出",
+      "随机访问",
+      "按优先级访问"
+    ],
+    "answer": 1,
+    "analysis": "栈遵循LIFO（Last In First Out）原则，即后进先出。"
+  },
+  {
+    "id": 4,
+    "category": "数据结构",
+    "question": "二分查找算法要求数据必须满足什么条件？",
+    "choices": [
+      "数据必须唯一",
+      "数据必须无重复",
+      "数据必须有序",
+      "数据必须为整数"
+    ],
+    "answer": 2,
+    "analysis": "二分查找通过比较中间元素缩小范围，因此要求数据已经按照一定规则排序。"
+  },
+  {
+    "id": 5,
+    "category": "数据库",
+    "question": "SQL中用于查询数据的关键字是？",
+    "choices": [
+      "GET",
+      "SELECT",
+      "QUERY",
+      "SEARCH"
+    ],
+    "answer": 1,
+    "analysis": "SELECT用于从数据库表中查询数据，例如 SELECT * FROM users。"
+  },
+  {
+    "id": 6,
+    "category": "数据库",
+    "question": "MySQL中，事务的四个基本特性简称为？",
+    "choices": [
+      "BASE",
+      "ACID",
+      "CAP",
+      "CRUD"
+    ],
+    "answer": 1,
+    "analysis": "事务具有ACID特性：原子性、一致性、隔离性、持久性。"
+  },
+  {
+    "id": 7,
+    "category": "计算机网络",
+    "question": "HTTP协议默认使用的端口号是多少？",
+    "choices": [
+      "21",
+      "22",
+      "80",
+      "443"
+    ],
+    "answer": 2,
+    "analysis": "HTTP默认端口为80，HTTPS默认端口为443。"
+  },
+  {
+    "id": 8,
+    "category": "计算机网络",
+    "question": "TCP协议属于OSI模型中的哪一层？",
+    "choices": [
+      "应用层",
+      "传输层",
+      "网络层",
+      "数据链路层"
+    ],
+    "answer": 1,
+    "analysis": "TCP（Transmission Control Protocol）属于传输层协议，负责可靠的数据传输。"
+  },
+  {
+    "id": 9,
+    "category": "操作系统",
+    "question": "操作系统中，进程和线程的主要区别是？",
+    "choices": [
+      "线程不能执行程序",
+      "进程拥有独立资源，线程共享进程资源",
+      "线程比进程占用资源更多",
+      "进程不能并发执行"
+    ],
+    "answer": 1,
+    "analysis": "进程是资源分配的基本单位，线程是CPU调度的基本单位，同一进程中的线程共享资源。"
+  },
+  {
+    "id": 10,
+    "category": "算法",
+    "question": "快速排序平均时间复杂度是多少？",
+    "choices": [
+      "O(n)",
+      "O(n log n)",
+      "O(n²)",
+      "O(log n)"
+    ],
+    "answer": 1,
+    "analysis": "快速排序平均情况下每次划分接近均匀，因此时间复杂度为O(n log n)，最坏情况为O(n²)。"
+  }
+]

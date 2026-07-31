@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>答题</title>
+</head>
+
+<body>
+    <h1>题号: {{.id}}, 类别: {{.category}}</h1>
+    <p>题目：{{.question}}</p>
+    <p>选项：<br>
+        A. {{.option_a}} <br>
+        B. {{.option_b}} <br>
+        C. {{.option_c}} <br>
+        D. {{.option_d}} <br>
+    </p>
+    <p>
+        答题进度: {{.id}}/{{.total_questions}}
+    </p>
+</body>
+
+<footer>
+    <form action="/submit_answer" method="post">
+        <input type="hidden" name="question_id" value="{{.id}}">
+        <label for="answer">选择答案：</label>
+        <select name="answer" id="answer">
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+        </select>
+        <button type="submit">提交答案</button>
+    </form>
+</footer>
