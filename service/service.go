@@ -1,12 +1,53 @@
 package service
 
 import (
+	"TheBook/utils"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
 )
+
+func InitSystem() (*gin.Engine, *QuestionServer, error) {
+	rootPath, err := utils.FindProjectRoot()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to find project root: %v", err)
+	}
+
+	questionServer, err := DataInit(rootPath)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to initialize data: %v", err)
+	}
+
+	r, err := GinInit(rootPath, questionServer)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to initialize Gin: %v", err)
+	}
+
+	return r, questionServer, nil
+}
+
+func DataInit(rootPath string) (*QuestionServer, error) {
+	questionFilePath := fmt.Sprintf("%s/database/data.json", rootPath)
+
+	questionServer, err := LoadQuestions(questionFilePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load questions: %v", err)
+	}
+
+	return questionServer, nil
+}
+
+func GinInit(rootPath string, questionServer *QuestionServer) (*gin.Engine, error) {
+	r := gin.Default()
+
+	r.POST("/request", questionServer.HandlerPostSubmitAnswer)
+	r.LoadHTMLFiles(fmt.Sprintf("%s/front/question_page.html", rootPath))
+
+	return r, nil
+}
 
 func LoadQuestions(path string) (*QuestionServer, error) {
 	file, err := os.Open(path)
@@ -35,7 +76,7 @@ func LoadQuestions(path string) (*QuestionServer, error) {
 	return &QuestionServer{DB: bank}, nil
 }
 
-func (qs *QuestionServer) HandlerPost(c *gin.Context) {
+func (qs *QuestionServer) HandlerPostSubmitAnswer(c *gin.Context) {
 	var userReq Request
 	if err := c.ShouldBindJSON(&userReq); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
@@ -48,10 +89,14 @@ func (qs *QuestionServer) HandlerPost(c *gin.Context) {
 		return
 	}
 
+	log.Printf("Question: %s\n", question.String())
+
 	pageData := NewQuestionData(
 		question,
 		len(qs.DB.Questions),
 	)
+
+	// log.Printf("PageData: %s\n", pageData.String())
 
 	c.HTML(200, "question_page.html", pageData)
 }

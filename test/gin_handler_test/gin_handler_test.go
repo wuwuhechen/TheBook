@@ -12,17 +12,26 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func TestMain(M *testing.M) {
+var (
+	router         *gin.Engine
+	questionServer *service.QuestionServer
+)
 
+func TestMain(M *testing.M) {
+	r, qs, err := service.InitSystem()
+	if err != nil {
+		panic(err)
+	}
+
+	router = r
+	questionServer = qs
+
+	code := M.Run()
+
+	os.Exit(code)
 }
 
 func TestGet(t *testing.T) {
-	r := gin.Default()
-	// r.GET("/request", service.HandlerPOST)
-
-	r.LoadHTMLFiles("../front/question_page.html")
-
-	_, err := service.LoadQuestions("../database/data.json")
 
 	request := service.Request{
 		UserID:     "test_user",
@@ -35,11 +44,11 @@ func TestGet(t *testing.T) {
 		t.Fatalf("Failed to marshal request: %v", err)
 	}
 
-	req, _ := http.NewRequest("GET", "/request", bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", "/request", bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
 
 	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
+	router.ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("Expected status code 200, got %d", w.Code)

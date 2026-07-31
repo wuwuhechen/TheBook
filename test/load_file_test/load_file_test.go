@@ -2,12 +2,18 @@ package load_file_test
 
 import (
 	"TheBook/service"
+	"TheBook/utils"
 	"fmt"
 	"testing"
 )
 
 func TestLoadQuestions(t *testing.T) {
-	qs, err := service.LoadQuestions("../../database/data.json")
+	rootPath, err := utils.FindProjectRoot()
+	if err != nil {
+		t.Fatalf("Failed to find project root: %v", err)
+	}
+
+	qs, err := service.LoadQuestions(fmt.Sprintf("%s/database/data.json", rootPath))
 	if err != nil {
 		t.Fatalf("Failed to load questions: %v", err)
 	}
@@ -15,15 +21,20 @@ func TestLoadQuestions(t *testing.T) {
 	db := qs.DB.GetAllQuestionsSorted()
 
 	for _, question := range db {
-		fmt.Printf("ID: %d, Question: %s, Choices: %v\n", question.ID, question.Question, question.Choices)
+		fmt.Printf("ID: %d, Question: %s, Explanation: %s\n", question.ID, question.Question, question.Explanation)
 	}
 }
 
 func BenchmarkLoadQuestions(b *testing.B) {
 
+	rootPath, err := utils.FindProjectRoot()
+	if err != nil {
+		b.Fatalf("Failed to find project root: %v", err)
+	}
+
 	for i := 0; i < b.N; i++ {
 
-		_, err := service.LoadQuestions("../../database/data.json")
+		_, err := service.LoadQuestions(fmt.Sprintf("%s/database/data.json", rootPath))
 
 		if err != nil {
 			b.Fatal(err)

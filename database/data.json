@@ -10,7 +10,7 @@
       "spawn"
     ],
     "answer": 1,
-    "analysis": "Go语言通过 go 关键字启动新的goroutine，例如 go func(){ }。"
+    "Explanation": "Go语言通过 go 关键字启动新的goroutine，例如 go func(){ }。"
   },
   {
     "id": 2,
@@ -23,7 +23,7 @@
       "map"
     ],
     "answer": 3,
-    "analysis": "map不是Go语言的基本数据类型，而是一种引用类型。基本类型包括整数、浮点数、字符串、布尔等。"
+    "Explanation": "map不是Go语言的基本数据类型，而是一种引用类型。基本类型包括整数、浮点数、字符串、布尔等。"
   },
   {
     "id": 3,
@@ -36,7 +36,7 @@
       "按优先级访问"
     ],
     "answer": 1,
-    "analysis": "栈遵循LIFO（Last In First Out）原则，即后进先出。"
+    "Explanation": "栈遵循LIFO（Last In First Out）原则，即后进先出。"
   },
   {
     "id": 4,
@@ -49,7 +49,7 @@
       "数据必须为整数"
     ],
     "answer": 2,
-    "analysis": "二分查找通过比较中间元素缩小范围，因此要求数据已经按照一定规则排序。"
+    "Explanation": "二分查找通过比较中间元素缩小范围，因此要求数据已经按照一定规则排序。"
   },
   {
     "id": 5,
@@ -62,7 +62,7 @@
       "SEARCH"
     ],
     "answer": 1,
-    "analysis": "SELECT用于从数据库表中查询数据，例如 SELECT * FROM users。"
+    "Explanation": "SELECT用于从数据库表中查询数据，例如 SELECT * FROM users。"
   },
   {
     "id": 6,
@@ -75,7 +75,7 @@
       "CRUD"
     ],
     "answer": 1,
-    "analysis": "事务具有ACID特性：原子性、一致性、隔离性、持久性。"
+    "Explanation": "事务具有ACID特性：原子性、一致性、隔离性、持久性。"
   },
   {
     "id": 7,
@@ -88,7 +88,7 @@
       "443"
     ],
     "answer": 2,
-    "analysis": "HTTP默认端口为80，HTTPS默认端口为443。"
+    "Explanation": "HTTP默认端口为80，HTTPS默认端口为443。"
   },
   {
     "id": 8,
@@ -101,7 +101,7 @@
       "数据链路层"
     ],
     "answer": 1,
-    "analysis": "TCP（Transmission Control Protocol）属于传输层协议，负责可靠的数据传输。"
+    "Explanation": "TCP（Transmission Control Protocol）属于传输层协议，负责可靠的数据传输。"
   },
   {
     "id": 9,
@@ -114,7 +114,7 @@
       "进程不能并发执行"
     ],
     "answer": 1,
-    "analysis": "进程是资源分配的基本单位，线程是CPU调度的基本单位，同一进程中的线程共享资源。"
+    "Explanation": "进程是资源分配的基本单位，线程是CPU调度的基本单位，同一进程中的线程共享资源。"
   },
   {
     "id": 10,
@@ -127,6 +127,6 @@
       "O(log n)"
     ],
     "answer": 1,
-    "analysis": "快速排序平均情况下每次划分接近均匀，因此时间复杂度为O(n log n)，最坏情况为O(n²)。"
+    "Explanation": "快速排序平均情况下每次划分接近均匀，因此时间复杂度为O(n log n)，最坏情况为O(n²)。"
   }
 ]
