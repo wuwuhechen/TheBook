@@ -11,6 +11,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+/*
+InitSystem 初始化系统，包括加载配置文件、初始化数据和Gin引擎
+
+参数
+
+	无
+
+返回值
+
+	*gin.Engine: Gin引擎实例
+	*QuestionServer: 问题服务器实例
+*/
 func InitSystem() (*gin.Engine, *QuestionServer, error) {
 	rootPath, err := utils.FindProjectRoot()
 
@@ -35,6 +47,18 @@ func InitSystem() (*gin.Engine, *QuestionServer, error) {
 	return r, questionServer, nil
 }
 
+/*
+DataInit 初始化数据，包括加载问题数据
+
+参数
+
+	path string: 问题数据文件的路径
+
+返回值
+
+	*QuestionServer: 问题服务器实例
+	error: 错误信息
+*/
 func DataInit(path string) (*QuestionServer, error) {
 	questionServer, err := LoadQuestions(path)
 	if err != nil {
@@ -44,6 +68,19 @@ func DataInit(path string) (*QuestionServer, error) {
 	return questionServer, nil
 }
 
+/*
+GinInit 初始化Gin引擎，包括设置路由和加载HTML模板
+
+参数
+
+	path string: HTML模板文件的路径
+	questionServer *QuestionServer: 问题服务器实例
+
+返回值
+
+	*gin.Engine: Gin引擎实例
+	error: 错误信息
+*/
 func GinInit(path string, questionServer *QuestionServer) (*gin.Engine, error) {
 	r := gin.Default()
 
@@ -53,6 +90,18 @@ func GinInit(path string, questionServer *QuestionServer) (*gin.Engine, error) {
 	return r, nil
 }
 
+/*
+LoadQuestions 加载问题数据
+
+参数
+
+	path string: 问题数据文件的路径
+
+返回值
+
+	*QuestionServer: 问题服务器实例
+	error: 错误信息
+*/
 func LoadQuestions(path string) (*QuestionServer, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -80,6 +129,17 @@ func LoadQuestions(path string) (*QuestionServer, error) {
 	return &QuestionServer{DB: bank}, nil
 }
 
+/*
+HandlerPostSubmitAnswer 处理用户提交答案的请求
+
+参数
+
+	c *gin.Context: Gin上下文对象
+
+返回值
+
+	无
+*/
 func (qs *QuestionServer) HandlerPostSubmitAnswer(c *gin.Context) {
 	var userReq Request
 	if err := c.ShouldBindJSON(&userReq); err != nil {
