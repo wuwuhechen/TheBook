@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<html>
+
+<body>
+
+<h2>获取题目</h2>
+
+<button onclick="getQuestion()">
+获取
+</button>
+
+
+<script>
+
+async function getQuestion(){
+
+    let response = await fetch(
+        "/request",
+        {
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+                question_id:1,
+            })
+        }
+    )
+
+
+    let html = await response.text()
+
+    document.body.innerHTML = html
+}
+
+</script>
+
+</body>
+
+</html>

@@ -1,5 +1,5 @@
 database:
-  database_path: "data/questions.json"
+  database_path: "database/data.json"
 
 front_end:
   template_path: "front_end/*"

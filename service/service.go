@@ -5,8 +5,9 @@ import (
 	"TheBook/utils"
 	"encoding/json"
 	"fmt"
-	"log"
+	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -84,8 +85,15 @@ GinInit 初始化Gin引擎，包括设置路由和加载HTML模板
 func GinInit(path string, questionServer *QuestionServer) (*gin.Engine, error) {
 	r := gin.Default()
 
-	r.POST("/request", questionServer.HandlerPostSubmitAnswer)
-	r.LoadHTMLFiles(path)
+	r.LoadHTMLGlob(path)
+
+	r.POST("/request", questionServer.HandlerPostQuestion)
+
+	r.POST("/check_answer", questionServer.HandlerPostCheckAnswer)
+
+	r.GET("/question", questionServer.HandlerGetQuestionPage)
+
+	r.GET("/", questionServer.HandlerGetHomePage)
 
 	return r, nil
 }
@@ -130,18 +138,41 @@ func LoadQuestions(path string) (*QuestionServer, error) {
 }
 
 /*
-HandlerPostSubmitAnswer 处理用户提交答案的请求
+HandlerPostQuestion 处理用户提交答案的请求
 
 参数
 
 	c *gin.Context: Gin上下文对象
-
-返回值
-
-	无
 */
-func (qs *QuestionServer) HandlerPostSubmitAnswer(c *gin.Context) {
+func (qs *QuestionServer) HandlerPostQuestion(c *gin.Context) {
 	var userReq Request
+	if err := c.ShouldBind(&userReq); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	_, err := qs.DB.GetQuestion(userReq.QuestionID)
+	if err != nil {
+		c.JSON(404, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Redirect(
+		http.StatusFound,
+		"/question?question_id="+strconv.Itoa(userReq.QuestionID),
+	)
+}
+
+/*
+HandlerPostCheckAnswer 处理用户提交答案的请求
+
+参数
+
+	c *gin.Context: Gin上下文对象
+*/
+func (qs *QuestionServer) HandlerPostCheckAnswer(c *gin.Context) {
+	var userReq Request
+
 	if err := c.ShouldBindJSON(&userReq); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -153,14 +184,48 @@ func (qs *QuestionServer) HandlerPostSubmitAnswer(c *gin.Context) {
 		return
 	}
 
-	log.Printf("Question: %s\n", question.String())
+	correct := userReq.Choice == question.Answer
+
+	response := NewResponse(correct, question.Explanation)
+	c.JSON(200, response)
+}
+
+/*
+HandlerGetQuestionPage 处理获取问题页面的请求
+
+参数
+
+	c *gin.Context: Gin上下文对象
+*/
+func (qs *QuestionServer) HandlerGetQuestionPage(c *gin.Context) {
+	questionID, err := strconv.Atoi(c.Query("question_id"))
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid question ID"})
+		return
+	}
+
+	question, err := qs.DB.GetQuestion(questionID)
+	if err != nil {
+		c.JSON(404, gin.H{"error": "Question not found"})
+		return
+	}
 
 	pageData := NewQuestionData(
 		question,
 		len(qs.DB.Questions),
 	)
 
-	// log.Printf("PageData: %s\n", pageData.String())
+	c.HTML(http.StatusOK, "question_page.html", pageData)
 
-	c.HTML(200, "question_page.html", pageData)
+}
+
+/*
+HandlerGetHomePage 处理获取首页的请求
+
+参数
+
+	c *gin.Context: Gin上下文对象
+*/
+func (qs *QuestionServer) HandlerGetHomePage(c *gin.Context) {
+	c.HTML(200, "home_page.html", nil)
 }

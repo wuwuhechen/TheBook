@@ -60,19 +60,19 @@
 
     <form id="answerForm">
 
-        <label for="answer">
+        <label for="choice">
             选择答案：
         </label>
 
-        <select name="answer" id="answer">
+        <select name="choice" id="choice">
 
-            <option value="A">A</option>
+            <option value="0">A</option>
 
-            <option value="B">B</option>
+            <option value="1">B</option>
 
-            <option value="C">C</option>
+            <option value="2">C</option>
 
-            <option value="D">D</option>
+            <option value="3">D</option>
 
         </select>
 
@@ -99,21 +99,24 @@ form.addEventListener(
     "submit",
     async function(event){
 
+        console.log("提交答案事件触发");
+
         event.preventDefault();
 
 
-        const answer =
-            document.getElementById("answer").value;
+        const choice =
+            document.getElementById("choice").value;
 
 
-        const questionID =
+        const question_id =
             document.getElementById("question_id").value;
 
 
 
         const data = {
-            question_id: Number(questionID),
-            answer: answer
+            user_id: "test_user",
+            question_id: Number(question_id),
+            choice: Number(choice)
         };
 
 
@@ -133,12 +136,7 @@ form.addEventListener(
 
 
 
-        // const result = await response.json();
-
-        const result = {
-            correct: true, // 假设返回的结果是正确的
-            explanation: document.getElementById("explanation").value
-        }
+        const result = await response.json();
 
         const resultDiv =
             document.getElementById("result");
