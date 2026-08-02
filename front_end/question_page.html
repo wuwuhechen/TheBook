@@ -83,6 +83,35 @@
 
     </form>
 
+    <form id="lastQuestionForm" action="/request" method="POST">
+
+        <input 
+            type="hidden"
+            name="question_id"
+            value="{{.LastID}}"
+        >
+
+        <button type="submit">
+            上一题
+        </button>
+
+    </form>
+
+    <form id = "nextQuestionForm" action="/request" method="POST">
+
+        <input 
+            type="hidden"
+            name="question_id"
+            value="{{.NextID}}"
+        >
+
+        <button type="submit">
+            下一题
+        </button>
+
+
+    </form>
+
     <!-- 显示结果 -->
     <div id="result"></div>
 

@@ -7,6 +7,12 @@ type QuestionPageData struct {
 	// ID 字段用于存储问题的唯一标识符
 	ID int
 
+	// LastID 字段用于存储上一个问题的唯一标识符
+	LastID int
+
+	// NextID 字段用于存储下一个问题的唯一标识符
+	NextID int
+
 	// Category 字段用于存储问题的分类信息
 	Category string
 
@@ -47,6 +53,8 @@ NewQuestionData 创建新的问题页面数据
 func NewQuestionData(question *Question, totalQuestions int) *QuestionPageData {
 	return &QuestionPageData{
 		ID:             question.ID,
+		LastID:         question.ID - 1,
+		NextID:         question.ID + 1,
 		Category:       question.Category,
 		Question:       question.Question,
 		OptionA:        question.Choices[0],
