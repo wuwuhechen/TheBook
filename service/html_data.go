@@ -1,17 +1,32 @@
 package service
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 // QuestionPageData 用于在HTML模板中渲染问题页面的数据结构
 type QuestionPageData struct {
 	// ID 字段用于存储问题的唯一标识符
 	ID int
 
+	// RealID 字段用于存储问题的实际唯一标识符
+	RealID int
+
 	// LastID 字段用于存储上一个问题的唯一标识符
 	LastID int
 
+	// HasLastID 字段用于指示是否存在上一个问题
+	HasLastID bool
+
+	// HasNextID 字段用于指示是否存在下一个问题
+	HasNextID bool
+
 	// NextID 字段用于存储下一个问题的唯一标识符
 	NextID int
+
+	// PracticeID 字段用于存储练习的唯一标识符
+	PracticeID int
 
 	// Category 字段用于存储问题的分类信息
 	Category string
@@ -36,6 +51,9 @@ type QuestionPageData struct {
 
 	// TotalQuestions 字段用于存储总题数
 	TotalQuestions int
+
+	// Duration 字段用于存储练习的持续时间（以秒为单位）
+	Duration int
 }
 
 /*
@@ -53,8 +71,11 @@ NewQuestionData 创建新的问题页面数据
 func NewQuestionData(question *Question, totalQuestions int) *QuestionPageData {
 	return &QuestionPageData{
 		ID:             question.ID,
+		RealID:         question.ID,
 		LastID:         question.ID - 1,
+		HasLastID:      question.ID > 1,
 		NextID:         question.ID + 1,
+		HasNextID:      question.ID < totalQuestions,
 		Category:       question.Category,
 		Question:       question.Question,
 		OptionA:        question.Choices[0],
@@ -63,7 +84,38 @@ func NewQuestionData(question *Question, totalQuestions int) *QuestionPageData {
 		OptionD:        question.Choices[3],
 		Explanation:    question.Explanation,
 		TotalQuestions: totalQuestions,
+		PracticeID:     0,
+		Duration:       0,
 	}
+}
+
+func (q *QuestionPageData) SetLastID(lastID int) {
+	q.LastID = lastID
+}
+
+func (q *QuestionPageData) SetNextID(nextID int, totalQuestions int) {
+	q.NextID = nextID
+	q.TotalQuestions = totalQuestions
+}
+
+func (q *QuestionPageData) SetHasLastID(hasLastID bool) {
+	q.HasLastID = hasLastID
+}
+
+func (q *QuestionPageData) SetHasNextID(hasNextID bool) {
+	q.HasNextID = hasNextID
+}
+
+func (q *QuestionPageData) SetDuration(duration time.Duration) {
+	q.Duration = int(duration.Seconds())
+}
+
+func (q *QuestionPageData) SetPracticeID(practiceID int) {
+	q.PracticeID = practiceID
+}
+
+func (q *QuestionPageData) SetID(ID int) {
+	q.ID = ID
 }
 
 /*

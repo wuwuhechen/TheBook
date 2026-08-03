@@ -9,4 +9,9 @@ type Request struct {
 
 	// Choice 字段用于存储用户选择的答案的索引
 	Choice int `json:"choice" form:"choice"`
+
+	// 套题大小字段，用于指定用户希望练习的题目数量
+	PracticeSize int `json:"practice_size" form:"practice_size"`
+
+	PracticeID int `json:"practice_id" form:"practice_id"`
 }

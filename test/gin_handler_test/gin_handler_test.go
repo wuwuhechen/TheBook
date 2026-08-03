@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -322,4 +323,247 @@ func TestGetHomePage(t *testing.T) {
 		"HTML saved:",
 		file,
 	)
+}
+
+func TestPostRandomQuestion(t *testing.T) {
+	req, err := http.NewRequest("POST", "/random", nil)
+	if err != nil {
+		t.Fatalf("Failed to create request: %v", err)
+	}
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusFound {
+		t.Fatalf("Expected status code 302, got %d", w.Code)
+	}
+}
+
+func TestGenerateExam(t *testing.T) {
+	request := service.Request{
+		UserID:       "test_user",
+		PracticeSize: 5,
+	}
+
+	jsonData, err := json.Marshal(request)
+	if err != nil {
+		t.Fatalf("Failed to marshal request: %v", err)
+	}
+
+	req, err := http.NewRequest("POST", "/practice_init", bytes.NewBuffer(jsonData))
+	if err != nil {
+		t.Fatalf("Failed to create request: %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusFound {
+		t.Fatalf("Expected status code 302, got %d", w.Code)
+	}
+
+	t.Logf("GenerateExam response: %s", w.Body.String())
+}
+
+func TestHandlerPostSubmitAnswer(t *testing.T) {
+	const practiceID = 10001
+	question, err := questionServer.DB.GetQuestion(1)
+	if err != nil {
+		t.Fatalf("Failed to get question: %v", err)
+	}
+
+	practice := (&service.Practice{}).NewPractice()
+	practice.ID = practiceID
+	practice.Questions = []int{question.ID}
+	questionServer.PM[practiceID] = practice
+	t.Cleanup(func() { delete(questionServer.PM, practiceID) })
+
+	t.Run("success", func(t *testing.T) {
+		request := service.Request{
+			PracticeID: practiceID,
+			QuestionID: question.ID,
+			Choice:     question.Answer,
+		}
+		jsonData, err := json.Marshal(request)
+		if err != nil {
+			t.Fatalf("Failed to marshal request: %v", err)
+		}
+
+		req, err := http.NewRequest("POST", "/submit_answer", bytes.NewBuffer(jsonData))
+		if err != nil {
+			t.Fatalf("Failed to create request: %v", err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("Expected status code 200, got %d: %s", w.Code, w.Body.String())
+		}
+
+		var response struct {
+			Message string `json:"message"`
+		}
+		if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+			t.Fatalf("Failed to unmarshal response: %v", err)
+		}
+		if response.Message != "saved" {
+			t.Fatalf("Expected message saved, got %q", response.Message)
+		}
+		if got := practice.Answers[question.ID]; got != question.Answer {
+			t.Fatalf("Expected saved answer %d, got %d", question.Answer, got)
+		}
+	})
+
+	t.Run("practice not found", func(t *testing.T) {
+		body := `{"practice_id":999999,"question_id":1,"choice":1}`
+		req, err := http.NewRequest("POST", "/submit_answer", strings.NewReader(body))
+		if err != nil {
+			t.Fatalf("Failed to create request: %v", err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		if w.Code != http.StatusNotFound {
+			t.Fatalf("Expected status code 404, got %d", w.Code)
+		}
+	})
+
+	t.Run("invalid JSON", func(t *testing.T) {
+		req, err := http.NewRequest("POST", "/submit_answer", strings.NewReader(`{"practice_id":`))
+		if err != nil {
+			t.Fatalf("Failed to create request: %v", err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		if w.Code != http.StatusBadRequest {
+			t.Fatalf("Expected status code 400, got %d", w.Code)
+		}
+	})
+}
+
+func TestHandlerSubmitPractice(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		const practiceID = 10002
+		question, err := questionServer.DB.GetQuestion(1)
+		if err != nil {
+			t.Fatalf("Failed to get question: %v", err)
+		}
+
+		practice := (&service.Practice{}).NewPractice()
+		practice.ID = practiceID
+		practice.Questions = []int{question.ID}
+		practice.Answers[question.ID] = question.Answer
+		questionServer.PM[practiceID] = practice
+		t.Cleanup(func() { delete(questionServer.PM, practiceID) })
+
+		req, err := http.NewRequest("POST", "/submit_practice/10002", nil)
+		if err != nil {
+			t.Fatalf("Failed to create request: %v", err)
+		}
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("Expected status code 200, got %d: %s", w.Code, w.Body.String())
+		}
+
+		var response service.PracticeResponse
+		if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+			t.Fatalf("Failed to unmarshal response: %v", err)
+		}
+		if response.Total != 1 || response.CorrectCount != 1 || response.WrongCount != 0 {
+			t.Fatalf("Unexpected practice result: %+v", response)
+		}
+		if len(response.Details) != 1 || !response.Details[0].Correct {
+			t.Fatalf("Expected one correct answer detail, got %+v", response.Details)
+		}
+		if !practice.Completed {
+			t.Fatal("Expected practice to be marked completed")
+		}
+	})
+
+	t.Run("invalid practice ID", func(t *testing.T) {
+		req, err := http.NewRequest("POST", "/submit_practice/not-a-number", nil)
+		if err != nil {
+			t.Fatalf("Failed to create request: %v", err)
+		}
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		if w.Code != http.StatusBadRequest {
+			t.Fatalf("Expected status code 400, got %d", w.Code)
+		}
+	})
+
+	t.Run("practice not found", func(t *testing.T) {
+		req, err := http.NewRequest("POST", "/submit_practice/999999", nil)
+		if err != nil {
+			t.Fatalf("Failed to create request: %v", err)
+		}
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		if w.Code != http.StatusNotFound {
+			t.Fatalf("Expected status code 404, got %d", w.Code)
+		}
+	})
+}
+
+func TestHandlerGetPracticePage(t *testing.T) {
+	const practiceID = 10003
+	question, err := questionServer.DB.GetQuestion(1)
+	if err != nil {
+		t.Fatalf("Failed to get question: %v", err)
+	}
+
+	practice := (&service.Practice{}).NewPractice()
+	practice.ID = practiceID
+	practice.Questions = []int{question.ID}
+	practice.TotalQuestions = questionServer.DB.GetTotalCount()
+	practice.Duration = 5 * time.Minute
+	practice.StartTime = time.Now()
+	questionServer.PM[practiceID] = practice
+	t.Cleanup(func() { delete(questionServer.PM, practiceID) })
+
+	req, err := http.NewRequest("GET", "/practice/10003", nil)
+	if err != nil {
+		t.Fatalf("Failed to create request: %v", err)
+	}
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("Expected status code 200, got %d: %s", w.Code, w.Body.String())
+	}
+
+	body := w.Body.String()
+	if !strings.Contains(body, question.Question) {
+		t.Fatalf("Response does not contain question content")
+	}
+	if !strings.Contains(body, `id="practice_id" value="10003"`) {
+		t.Fatalf("Response does not contain practice ID")
+	}
+	if !strings.Contains(body, `id="duration" value="300"`) &&
+		!strings.Contains(body, `id="duration" value="299"`) {
+		t.Fatalf("Response does not contain duration in seconds")
+	}
+
+	pagePath := "test_practice_page.html"
+	if err := os.WriteFile(pagePath, w.Body.Bytes(), 0644); err != nil {
+		t.Fatalf("Failed to save practice page: %v", err)
+	}
+	t.Logf("Practice page saved: %s", pagePath)
 }

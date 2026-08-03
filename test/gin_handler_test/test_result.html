@@ -1,216 +1,127 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>答题</title>
 
     <style>
-        #result {
-            margin-top: 20px;
-            font-size: 18px;
-            font-weight: bold;
-        }
+      #result {
+        margin-top: 20px;
+        font-size: 18px;
+        font-weight: bold;
+      }
 
-        #explanation {
-            margin-top: 10px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            display: none;
-        }
+      #explanation {
+        margin-top: 10px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        display: none;
+      }
     </style>
-</head>
+  </head>
 
+  <body>
+    <h1>题号: 1, 类别: Go语言</h1>
 
-<body>
-    <h1>
-        题号: 1, 类别: Go语言
-    </h1>
-
-    <p>
-        题目：Go语言中，下面哪个关键字用于声明一个新的goroutine？
-    </p>
+    <p>题目：Go语言中，下面哪个关键字用于声明一个新的goroutine？</p>
 
     <p>
-        选项：<br>
-        A. thread <br>
-        B. go <br>
-        C. async <br>
-        D. spawn <br>
+      选项：<br />
+      A. thread <br />
+      B. go <br />
+      C. async <br />
+      D. spawn <br />
     </p>
 
-    <p>
-        答题进度: 1/10
-    </p>
+    <p>答题进度: 1/10</p>
 
     
-    <input 
-        type="hidden" 
-        id="explanation"
-        value="Go语言通过 go 关键字启动新的goroutine，例如 go func(){ }。"
-    >
+    <input type="hidden" id="explanation" value="Go语言通过 go 关键字启动新的goroutine，例如 go func(){ }。" />
 
     
-    <input 
-        type="hidden" 
-        id="question_id"
-        value="1"
-    >
+    <input type="hidden" id="question_id" value="1" />
 
     <form id="answerForm">
+      <label for="choice"> 选择答案： </label>
 
-        <label for="choice">
-            选择答案：
-        </label>
+      <select name="choice" id="choice">
+        <option value="0">A</option>
 
-        <select name="choice" id="choice">
+        <option value="1">B</option>
 
-            <option value="0">A</option>
+        <option value="2">C</option>
 
-            <option value="1">B</option>
+        <option value="3">D</option>
+      </select>
 
-            <option value="2">C</option>
-
-            <option value="3">D</option>
-
-        </select>
-
-
-        <button type="submit">
-            提交答案
-        </button>
-
+      <button type="submit">提交答案</button>
     </form>
 
-    <form id="lastQuestionForm" action="/request" method="POST">
+    
 
-        <input 
-            type="hidden"
-            name="question_id"
-            value="1"
-        >
+    
+    <form id="nextQuestionForm" action="/request" method="POST">
+      <input type="hidden" name="question_id" value="2" />
 
-        <button type="submit">
-            上一题
-        </button>
-
+      <button type="submit">下一题</button>
     </form>
-
-    <form id = "nextQuestionForm" action="/request" method="POST">
-
-        <input 
-            type="hidden"
-            name="question_id"
-            value="2"
-        >
-
-        <button type="submit">
-            下一题
-        </button>
-
-
-    </form>
+    
 
     
     <div id="result"></div>
 
     
-    <div id="showExplanation">
-    </div>
+    <div id="showExplanation"></div>
 
-<script>
+    <script>
+      const form = document.getElementById("answerForm");
 
-const form = document.getElementById("answerForm");
-
-
-form.addEventListener(
-    "submit",
-    async function(event){
-
+      form.addEventListener("submit", async function (event) {
         console.log("提交答案事件触发");
 
         event.preventDefault();
 
+        const choice = document.getElementById("choice").value;
 
-        const choice =
-            document.getElementById("choice").value;
-
-
-        const question_id =
-            document.getElementById("question_id").value;
-
-
+        const question_id = document.getElementById("question_id").value;
 
         const data = {
-            user_id: "test_user",
-            question_id: Number(question_id),
-            choice: Number(choice)
+          user_id: "test_user",
+          question_id: Number(question_id),
+          choice: Number(choice),
         };
 
+        const response = await fetch("/check_answer", {
+          method: "POST",
 
+          headers: {
+            "Content-Type": "application/json",
+          },
 
-        const response = await fetch(
-            "/check_answer",
-            {
-                method:"POST",
-
-                headers:{
-                    "Content-Type":"application/json"
-                },
-
-                body:JSON.stringify(data)
-            }
-        );
-
-
+          body: JSON.stringify(data),
+        });
 
         const result = await response.json();
 
-        const resultDiv =
-            document.getElementById("result");
+        const resultDiv = document.getElementById("result");
 
+        const explanationDiv = document.getElementById("showExplanation");
 
-        const explanationDiv =
-            document.getElementById("showExplanation");
+        if (result.correct) {
+          resultDiv.innerHTML = "✅ 回答正确";
 
+          resultDiv.style.color = "green";
+        } else {
+          resultDiv.innerHTML = "❌ 回答错误";
 
-
-        if(result.correct){
-
-            resultDiv.innerHTML =
-                "✅ 回答正确";
-
-            resultDiv.style.color =
-                "green";
-
-        }else{
-
-            resultDiv.innerHTML =
-                "❌ 回答错误";
-
-            resultDiv.style.color =
-                "red";
+          resultDiv.style.color = "red";
         }
 
+        explanationDiv.style.display = "block";
 
-
-        explanationDiv.style.display =
-            "block";
-
-
-        explanationDiv.innerHTML =
-            "<h3>解析：</h3>" +
-            result.explanation;
-
-    }
-
-);
-
-</script>
-
-
-</body>
-
-
+        explanationDiv.innerHTML = "<h3>解析：</h3>" + result.explanation;
+      });
+    </script>
+  </body>
 </html>

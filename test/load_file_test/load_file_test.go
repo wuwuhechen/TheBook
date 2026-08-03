@@ -7,15 +7,15 @@ import (
 	"testing"
 )
 
-func TestLoadQuestions(t *testing.T) {
+func TestDataInit(t *testing.T) {
 	rootPath, err := utils.FindProjectRoot()
 	if err != nil {
 		t.Fatalf("Failed to find project root: %v", err)
 	}
 
-	qs, err := service.LoadQuestions(fmt.Sprintf("%s/database/data.json", rootPath))
+	qs, err := service.DataInit(fmt.Sprintf("%s/database/data.json", rootPath))
 	if err != nil {
-		t.Fatalf("Failed to load questions: %v", err)
+		t.Fatalf("Failed to initialize system: %v", err)
 	}
 
 	db := qs.DB.GetAllQuestionsSorted()

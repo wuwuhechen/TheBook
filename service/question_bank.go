@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"math/rand"
 	"sort"
 )
 
@@ -102,4 +103,43 @@ func (qb *QuestionBank) GetAllQuestionsSorted() []Question {
 	}
 
 	return questions
+}
+
+/*
+GetRandomQuestionID 返回一个随机的问题实例
+
+返回值
+
+	*Question: 随机问题实例
+*/
+func (qb *QuestionBank) GetRandomQuestionID() (*Question, error) {
+	if len(qb.IDs) == 0 {
+		return nil, fmt.Errorf("no questions available")
+	}
+
+	randomIndex := rand.Intn(len(qb.IDs))
+	randomQuestionID := qb.IDs[randomIndex]
+	question, exists := qb.Questions[randomQuestionID]
+	if !exists {
+		return nil, fmt.Errorf("question with ID %d not found", randomQuestionID)
+	}
+
+	return &question, nil
+}
+
+/*
+GetTotalCount 返回问题库中问题的总数
+
+返回值
+
+	int: 问题总数
+*/
+func (qb *QuestionBank) GetTotalCount() int {
+	return len(qb.Questions)
+}
+
+func (qb *QuestionBank) GetALLQuestionIDs() []int {
+	ids := make([]int, len(qb.IDs))
+	copy(ids, qb.IDs)
+	return ids
 }

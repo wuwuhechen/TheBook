@@ -6,37 +6,27 @@
 
 <h2>获取题目</h2>
 
-<button onclick="getQuestion()">
-获取
-</button>
+<form action="/request" method="POST">
 
+    <input 
+        type="hidden"
+        name="question_id"
+        value="1"
+    >
 
-<script>
+    <button type="submit">
+        继续上次进度
+    </button>
 
-async function getQuestion(){
+</form>
 
-    let response = await fetch(
-        "/request",
-        {
-            method:"POST",
+<form action="/random" method="POST">
 
-            headers:{
-                "Content-Type":"application/json"
-            },
+    <button type="submit">
+        随机获取题目
+    </button>
 
-            body:JSON.stringify({
-                question_id:1,
-            })
-        }
-    )
-
-
-    let html = await response.text()
-
-    document.body.innerHTML = html
-}
-
-</script>
+</form>
 
 </body>
 

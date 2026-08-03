@@ -1,216 +1,133 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>答题</title>
 
     <style>
-        #result {
-            margin-top: 20px;
-            font-size: 18px;
-            font-weight: bold;
-        }
+      #result {
+        margin-top: 20px;
+        font-size: 18px;
+        font-weight: bold;
+      }
 
-        #explanation {
-            margin-top: 10px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            display: none;
-        }
+      #explanation {
+        margin-top: 10px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        display: none;
+      }
     </style>
-</head>
+  </head>
 
+  <body>
+    <h1>题号: {{.ID}}, 类别: {{.Category}}</h1>
 
-<body>
-    <h1>
-        题号: {{.ID}}, 类别: {{.Category}}
-    </h1>
-
-    <p>
-        题目：{{.Question}}
-    </p>
+    <p>题目：{{.Question}}</p>
 
     <p>
-        选项：<br>
-        A. {{.OptionA}} <br>
-        B. {{.OptionB}} <br>
-        C. {{.OptionC}} <br>
-        D. {{.OptionD}} <br>
+      选项：<br />
+      A. {{.OptionA}} <br />
+      B. {{.OptionB}} <br />
+      C. {{.OptionC}} <br />
+      D. {{.OptionD}} <br />
     </p>
 
-    <p>
-        答题进度: {{.ID}}/{{.TotalQuestions}}
-    </p>
+    <p>答题进度: {{.ID}}/{{.TotalQuestions}}</p>
 
     <!-- 隐藏解析字段 -->
-    <input 
-        type="hidden" 
-        id="explanation"
-        value="{{.Explanation}}"
-    >
+    <input type="hidden" id="explanation" value="{{.Explanation}}" />
 
     <!-- 隐藏题目ID -->
-    <input 
-        type="hidden" 
-        id="question_id"
-        value="{{.ID}}"
-    >
+    <input type="hidden" id="question_id" value="{{.ID}}" />
 
     <form id="answerForm">
+      <label for="choice"> 选择答案： </label>
 
-        <label for="choice">
-            选择答案：
-        </label>
+      <select name="choice" id="choice">
+        <option value="0">A</option>
 
-        <select name="choice" id="choice">
+        <option value="1">B</option>
 
-            <option value="0">A</option>
+        <option value="2">C</option>
 
-            <option value="1">B</option>
+        <option value="3">D</option>
+      </select>
 
-            <option value="2">C</option>
-
-            <option value="3">D</option>
-
-        </select>
-
-
-        <button type="submit">
-            提交答案
-        </button>
-
+      <button type="submit">提交答案</button>
     </form>
 
+    {{if .HasLastID}}
     <form id="lastQuestionForm" action="/request" method="POST">
+      <input type="hidden" name="question_id" value="{{.LastID}}" />
 
-        <input 
-            type="hidden"
-            name="question_id"
-            value="{{.LastID}}"
-        >
-
-        <button type="submit">
-            上一题
-        </button>
-
+      <button type="submit">上一题</button>
     </form>
+    {{end}}
 
-    <form id = "nextQuestionForm" action="/request" method="POST">
+    {{if .HasNextID}}
+    <form id="nextQuestionForm" action="/request" method="POST">
+      <input type="hidden" name="question_id" value="{{.NextID}}" />
 
-        <input 
-            type="hidden"
-            name="question_id"
-            value="{{.NextID}}"
-        >
-
-        <button type="submit">
-            下一题
-        </button>
-
-
+      <button type="submit">下一题</button>
     </form>
+    {{end}}
 
     <!-- 显示结果 -->
     <div id="result"></div>
 
     <!-- 显示解析 -->
-    <div id="showExplanation">
-    </div>
+    <div id="showExplanation"></div>
 
-<script>
+    <script>
+      const form = document.getElementById("answerForm");
 
-const form = document.getElementById("answerForm");
-
-
-form.addEventListener(
-    "submit",
-    async function(event){
-
+      form.addEventListener("submit", async function (event) {
         console.log("提交答案事件触发");
 
         event.preventDefault();
 
+        const choice = document.getElementById("choice").value;
 
-        const choice =
-            document.getElementById("choice").value;
-
-
-        const question_id =
-            document.getElementById("question_id").value;
-
-
+        const question_id = document.getElementById("question_id").value;
 
         const data = {
-            user_id: "test_user",
-            question_id: Number(question_id),
-            choice: Number(choice)
+          user_id: "test_user",
+          question_id: Number(question_id),
+          choice: Number(choice),
         };
 
+        const response = await fetch("/check_answer", {
+          method: "POST",
 
+          headers: {
+            "Content-Type": "application/json",
+          },
 
-        const response = await fetch(
-            "/check_answer",
-            {
-                method:"POST",
-
-                headers:{
-                    "Content-Type":"application/json"
-                },
-
-                body:JSON.stringify(data)
-            }
-        );
-
-
+          body: JSON.stringify(data),
+        });
 
         const result = await response.json();
 
-        const resultDiv =
-            document.getElementById("result");
+        const resultDiv = document.getElementById("result");
 
+        const explanationDiv = document.getElementById("showExplanation");
 
-        const explanationDiv =
-            document.getElementById("showExplanation");
+        if (result.correct) {
+          resultDiv.innerHTML = "✅ 回答正确";
 
+          resultDiv.style.color = "green";
+        } else {
+          resultDiv.innerHTML = "❌ 回答错误";
 
-
-        if(result.correct){
-
-            resultDiv.innerHTML =
-                "✅ 回答正确";
-
-            resultDiv.style.color =
-                "green";
-
-        }else{
-
-            resultDiv.innerHTML =
-                "❌ 回答错误";
-
-            resultDiv.style.color =
-                "red";
+          resultDiv.style.color = "red";
         }
 
+        explanationDiv.style.display = "block";
 
-
-        explanationDiv.style.display =
-            "block";
-
-
-        explanationDiv.innerHTML =
-            "<h3>解析：</h3>" +
-            result.explanation;
-
-    }
-
-);
-
-</script>
-
-
-</body>
-
-
+        explanationDiv.innerHTML = "<h3>解析：</h3>" + result.explanation;
+      });
+    </script>
+  </body>
 </html>
