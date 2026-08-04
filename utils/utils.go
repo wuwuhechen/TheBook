@@ -5,13 +5,7 @@ import (
 	"path/filepath"
 )
 
-/*
-FindProjectRoot 查找项目的根目录
-
-返回值
-
-	string: 项目的根目录路径
-*/
+// FindProjectRoot用于查找项目的根目录，根目录是包含go.mod文件的目录。
 func FindProjectRoot() (string, error) {
 	dir, err := os.Getwd()
 	if err != nil {

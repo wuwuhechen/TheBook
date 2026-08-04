@@ -3,24 +3,28 @@
     "user_id": 0,
     "username": "admin",
     "password": "Admin123!",
-    "nickname": "Administrator"
+    "nickname": "Administrator",
+    "role": "admin"
   },
   {
     "user_id": 1,
     "username": "test_user",
     "password": "Test123!",
-    "nickname": "Test User"
+    "nickname": "Test User",
+    "role": "user"
   },
   {
     "user_id": 2,
     "username": "alice",
     "password": "Alice123!",
-    "nickname": "Alice"
+    "nickname": "Alice",
+    "role": "user"
   },
   {
     "user_id": 3,
     "username": "bob",
     "password": "Bob123!",
-    "nickname": "Bob"
+    "nickname": "Bob",
+    "role": "user"
   }
 ]
