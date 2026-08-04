@@ -41,3 +41,32 @@ func BenchmarkLoadQuestions(b *testing.B) {
 		}
 	}
 }
+
+func TestUserInit(t *testing.T) {
+	rootPath, err := utils.FindProjectRoot()
+	if err != nil {
+		t.Fatalf("Failed to find project root: %v", err)
+	}
+
+	userBank, err := service.UserInit(
+		fmt.Sprintf("%s/database/users.json", rootPath),
+	)
+	if err != nil {
+		t.Fatalf("Failed to initialize users: %v", err)
+	}
+
+	if len(userBank.Users) == 0 {
+		t.Fatal("Expected at least one test user")
+	}
+
+	testUser, exists := userBank.GetUser("test_user")
+	if !exists {
+		t.Fatal("Expected test_user to be loaded")
+	}
+	if testUser.UserID != 1 {
+		t.Fatalf("Expected test_user ID 1, got %d", testUser.UserID)
+	}
+	if testUser.Password == "" {
+		t.Fatal("Expected test_user to have a password")
+	}
+}

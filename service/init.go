@@ -12,7 +12,7 @@ import (
 )
 
 // InitSystem 加载配置并初始化题目服务与 Gin 引擎。
-func InitSystem() (*gin.Engine, *QuestionServer, error) {
+func InitSystem() (*gin.Engine, *Server, error) {
 	rootPath, err := utils.FindProjectRoot()
 
 	cfg, err := config.LoadConfig(fmt.Sprintf("%s/config/config.yaml", rootPath))
@@ -33,12 +33,15 @@ func InitSystem() (*gin.Engine, *QuestionServer, error) {
 	}
 
 	usPath := fmt.Sprintf("%s/%s", rootPath, cfg.User.UserBankPath)
-	_, err = UserInit(usPath)
+	userServer, err := UserInit(usPath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to initialize user data: %v", err)
 	}
 
-	return r, questionServer, nil
+	return r, &Server{
+		QS: questionServer,
+		US: userServer,
+	}, nil
 }
 
 // DataInit 从 path 加载题目，并创建空的练习管理器。

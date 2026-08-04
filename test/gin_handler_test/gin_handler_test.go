@@ -21,13 +21,13 @@ var (
 )
 
 func TestMain(M *testing.M) {
-	r, qs, err := service.InitSystem()
+	r, server, err := service.InitSystem()
 	if err != nil {
 		panic(err)
 	}
 
 	router = r
-	questionServer = qs
+	questionServer = server.QS
 
 	code := M.Run()
 
