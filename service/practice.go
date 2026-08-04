@@ -155,6 +155,7 @@ func (p *Practice) CheckPractice(qs *QuestionServer) *PracticeResponse {
 	}
 
 	return &PracticeResponse{
+		PracticeID:   p.ID,
 		Total:        Total,
 		CorrectCount: CorrectCount,
 		WrongCount:   WrongCount,

@@ -567,3 +567,54 @@ func TestHandlerGetPracticePage(t *testing.T) {
 	}
 	t.Logf("Practice page saved: %s", pagePath)
 }
+
+func TestHandlerGetPracticeResultPage(t *testing.T) {
+	const practiceID = 10004
+	question, err := questionServer.DB.GetQuestion(1)
+	if err != nil {
+		t.Fatalf("Failed to get question: %v", err)
+	}
+
+	practice := (&service.Practice{}).NewPractice()
+	practice.ID = practiceID
+	practice.Questions = []int{question.ID}
+	practice.Answers[question.ID] = question.Answer
+	practice.Completed = true
+	questionServer.PM[practiceID] = practice
+	t.Cleanup(func() { delete(questionServer.PM, practiceID) })
+
+	req, err := http.NewRequest("GET", "/practice/10004/result", nil)
+	if err != nil {
+		t.Fatalf("Failed to create request: %v", err)
+	}
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("Expected status code 200, got %d: %s", w.Code, w.Body.String())
+	}
+
+	body := w.Body.String()
+	for _, expected := range []string{
+		"练习结果",
+		question.Question,
+		"回答正确",
+		question.Explanation,
+	} {
+		if !strings.Contains(body, expected) {
+			t.Fatalf("Response does not contain %q", expected)
+		}
+	}
+
+	t.Run("practice not completed", func(t *testing.T) {
+		practice.Completed = false
+		defer func() { practice.Completed = true }()
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		if w.Code != http.StatusBadRequest {
+			t.Fatalf("Expected status code 400, got %d", w.Code)
+		}
+	})
+}

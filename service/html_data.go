@@ -133,3 +133,26 @@ func (q *QuestionPageData) String() string {
 	return fmt.Sprintf("编号：%d\n 分类：%s\n 问题：%s\n 选项A：%s\n 选项B：%s\n 选项C：%s\n 选项D：%s\n 解析：%s\n 总题数：%d",
 		q.ID, q.Category, q.Question, q.OptionA, q.OptionB, q.OptionC, q.OptionD, q.Explanation, q.TotalQuestions)
 }
+
+type PracticeResultItem struct {
+	Number            int      `json:"number"`
+	RealID            int      `json:"real_id"`
+	Category          string   `json:"category"`
+	Question          string   `json:"question"`
+	Choices           []string `json:"choices"`
+	UserAnswer        int      `json:"user_answer"`
+	Answered          bool     `json:"answered"`
+	UserAnswerText    string   `json:"user_answer_text"`
+	CorrectAnswer     int      `json:"correct_answer"`
+	CorrectAnswerText string   `json:"correct_answer_text"`
+	Correct           bool     `json:"correct"`
+	Explanation       string   `json:"explanation"`
+}
+
+type PracticeResultPageData struct {
+	PracticeID   int                  `json:"practice_id"`
+	Total        int                  `json:"total"`
+	CorrectCount int                  `json:"correct_count"`
+	WrongCount   int                  `json:"wrong_count"`
+	Items        []PracticeResultItem `json:"Items"`
+}

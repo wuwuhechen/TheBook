@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>练习结果</title>
+    <style>
+      body { font-family: sans-serif; margin: 24px; max-width: 900px; }
+      .summary { padding: 16px; background: #f5f7fa; border-radius: 8px; }
+      .item { margin-top: 20px; padding: 16px; border: 1px solid #d0d7de; border-radius: 8px; }
+      .correct { color: #137333; font-weight: bold; }
+      .wrong { color: #b42318; font-weight: bold; }
+      .explanation { padding: 12px; background: #fff8c5; border-radius: 6px; }
+    </style>
+  </head>
+  <body>
+    <h1>练习结果</h1>
+    <section class="summary">
+      <p>总题数：{{.Total}}</p>
+      <p>答对：{{.CorrectCount}}</p>
+      <p>答错：{{.WrongCount}}</p>
+    </section>
+
+    {{range .Items}}
+    <section class="item">
+      <h2>第 {{.Number}} 题 · {{.Category}}</h2>
+      <p>{{.Question}}</p>
+      <ol type="A">
+        {{range .Choices}}<li>{{.}}</li>{{end}}
+      </ol>
+
+      {{if .Correct}}
+      <p class="correct">回答正确</p>
+      {{else}}
+      <p class="wrong">回答错误</p>
+      {{end}}
+
+      {{if .Answered}}
+      <p>你的答案：{{.UserAnswerText}}</p>
+      {{else}}
+      <p>你的答案：未作答</p>
+      {{end}}
+      <p>正确答案：{{.CorrectAnswerText}}</p>
+      <div class="explanation">解析：{{.Explanation}}</div>
+    </section>
+    {{end}}
+
+    <p><a href="/">返回首页</a></p>
+  </body>
+</html>

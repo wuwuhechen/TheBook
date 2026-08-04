@@ -28,6 +28,38 @@
 
 </form>
 
+<h2>开始套题练习</h2>
+
+<form id="practiceForm">
+    <label for="practiceSize">题目数量：</label>
+    <input id="practiceSize" type="number" min="1" value="5" required>
+    <button type="submit">开始做套题</button>
+</form>
+
+<script>
+    document.getElementById("practiceForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const response = await fetch("/practice_init", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                user_id: "test_user",
+                practice_size: Number(document.getElementById("practiceSize").value)
+            })
+        });
+
+        if (response.redirected) {
+            window.location.href = response.url;
+            return;
+        }
+
+        if (!response.ok) {
+            alert("练习初始化失败");
+        }
+    });
+</script>
+
 </body>
 
 </html>

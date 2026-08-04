@@ -110,6 +110,8 @@ func GinInit(path string, questionServer *QuestionServer) (*gin.Engine, error) {
 
 	r.GET("/question", questionServer.HandlerGetQuestionPage)
 
+	r.GET("/practice/:practice_id/result", questionServer.HandlerGetPracticeResultPage)
+
 	r.GET("/practice/:practice_id", questionServer.HandlerGetPracticePage)
 
 	r.GET("/", questionServer.HandlerGetHomePage)
@@ -387,4 +389,78 @@ func (qs *QuestionServer) HandlerGetPracticePage(c *gin.Context) {
 	pageData.SetDuration(remainingTime)
 
 	c.HTML(200, "practice_page.html", pageData)
+}
+
+func (qs *QuestionServer) HandlerGetPracticeResultPage(c *gin.Context) {
+	practiceIDStr := c.Param("practice_id")
+	practiceID, err := strconv.Atoi(practiceIDStr)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Invalid practice ID"})
+		return
+	}
+
+	practice := qs.PM[practiceID]
+	if practice == nil {
+		c.JSON(404, gin.H{"error": "Practice not found"})
+		return
+	}
+
+	if !practice.Completed {
+		c.JSON(400, gin.H{"error": "Practice not completed"})
+		return
+	}
+
+	items := make([]PracticeResultItem, 0, len(practice.Questions))
+
+	correctCount := 0
+	wrongCount := 0
+
+	for idx, questionID := range practice.Questions {
+		question, err := qs.DB.GetQuestion(questionID)
+		if err != nil {
+			continue
+		}
+
+		userAnswer, answered := practice.Answers[questionID]
+		correct := answered && userAnswer == question.Answer
+
+		if correct {
+			correctCount++
+		} else {
+			wrongCount++
+		}
+
+		item := PracticeResultItem{
+			Number:            idx + 1,
+			RealID:            question.ID,
+			Category:          question.Category,
+			Question:          question.Question,
+			Choices:           question.Choices,
+			UserAnswer:        userAnswer,
+			Answered:          answered,
+			UserAnswerText:    choiceText(question.Choices, userAnswer),
+			CorrectAnswer:     question.Answer,
+			CorrectAnswerText: choiceText(question.Choices, question.Answer),
+			Correct:           correct,
+			Explanation:       question.Explanation,
+		}
+
+		items = append(items, item)
+	}
+
+	c.HTML(http.StatusOK, "practice_result_page.html", PracticeResultPageData{
+		PracticeID:   practiceID,
+		Total:        len(items),
+		CorrectCount: correctCount,
+		WrongCount:   wrongCount,
+		Items:        items,
+	})
+}
+
+func choiceText(choices []string, index int) string {
+	if index < 0 || index >= len(choices) {
+		return ""
+	}
+
+	return string(rune('A'+index)) + ". " + choices[index]
 }

@@ -17,6 +17,8 @@ func NewResponse(correct bool, explanation string) *QuestionResponse {
 }
 
 type PracticeResponse struct {
+	PracticeID int `json:"practice_id"`
+
 	Total int `json:"total"`
 
 	CorrectCount int `json:"correct_count"`

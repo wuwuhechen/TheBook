@@ -63,8 +63,6 @@
     
     <div id="result"></div>
 
-    
-
     <button id="submitPracticeButton" type="button">提交练习</button>
 
     <div id="submitResult"></div>
@@ -105,8 +103,15 @@
           return;
         }
         const result = await response.json();
-        submitResult.textContent = "总题数：" + result.total +
-          "，答对：" + result.correct_count + "，答错：" + result.wrong_count;
+        const practiceID = document.getElementById("practice_id").value;
+        submitResult.innerHTML =
+          "总题数：" + result.total +
+          "，答对：" + result.correct_count +
+          "，答错：" + result.wrong_count +
+          '<p><button id="viewResultButton" type="button">查看答题解析</button></p>';
+        document.getElementById("viewResultButton").addEventListener("click", () => {
+          window.location.href = "/practice/" + practiceID + "/result";
+        });
       }
 
       submitButton.addEventListener("click", () => submitPractice(false));
@@ -142,19 +147,19 @@
 
         const explanationDiv = document.getElementById("showExplanation");
 
-        if (result.correct) {
-          resultDiv.innerHTML = "✅ 回答正确";
+        
+        
 
-          resultDiv.style.color = "green";
-        } else {
-          resultDiv.innerHTML = "❌ 回答错误";
+        
+        
+        
 
-          resultDiv.style.color = "red";
-        }
+        
+        
 
-        explanationDiv.style.display = "block";
+        
 
-        explanationDiv.innerHTML = "<h3>解析：</h3>" + result.explanation;
+        
       });
 
       let remaining = Number(document.getElementById("duration").value);
