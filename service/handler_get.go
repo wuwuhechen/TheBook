@@ -1,6 +1,7 @@
 package service
 
 import (
+	"TheBook/model"
 	"net/http"
 	"strconv"
 	"time"
@@ -20,7 +21,7 @@ func (qs *QuestionServer) HandlerGetQuestionPage(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Question not found"})
 		return
 	}
-	c.HTML(http.StatusOK, "question_page.html", NewQuestionData(question, qs.DB.GetTotalCount()))
+	c.HTML(http.StatusOK, "question_page.html", model.NewQuestionData(question, qs.DB.GetTotalCount()))
 }
 
 // HandlerGetRandomQuestionPage 渲染随机答题会话中的当前题目并处理前后切换。
@@ -54,7 +55,7 @@ func (qs *QuestionServer) HandlerGetRandomQuestionPage(c *gin.Context) {
 		return
 	}
 
-	pageData := NewQuestionData(question, len(session.Questions))
+	pageData := model.NewQuestionData(question, len(session.Questions))
 	pageData.SetID(session.CurrentIndex + 1)
 	pageData.SetRandomSessionID(sessionID)
 	pageData.SetHasLastID(session.CurrentIndex > 0)
@@ -102,7 +103,7 @@ func (qs *QuestionServer) HandlerGetPracticePage(c *gin.Context) {
 		return
 	}
 
-	pageData := NewQuestionData(question, practice.TotalQuestions)
+	pageData := model.NewQuestionData(question, practice.TotalQuestions)
 	pageData.SetID(practice.CurrentIndex + 1)
 	pageData.SetPracticeID(practiceID)
 	pageData.SetHasLastID(practice.CurrentIndex > 0)
@@ -128,7 +129,7 @@ func (qs *QuestionServer) HandlerGetPracticeResultPage(c *gin.Context) {
 		return
 	}
 
-	items := make([]PracticeResultItem, 0, len(practice.Questions))
+	items := make([]model.PracticeResultItem, 0, len(practice.Questions))
 	correctCount, wrongCount := 0, 0
 	for idx, questionID := range practice.Questions {
 		question, err := qs.DB.GetQuestion(questionID)
@@ -142,7 +143,7 @@ func (qs *QuestionServer) HandlerGetPracticeResultPage(c *gin.Context) {
 		} else {
 			wrongCount++
 		}
-		items = append(items, PracticeResultItem{
+		items = append(items, model.PracticeResultItem{
 			Number:            idx + 1,
 			RealID:            question.ID,
 			Category:          question.Category,
@@ -158,7 +159,7 @@ func (qs *QuestionServer) HandlerGetPracticeResultPage(c *gin.Context) {
 		})
 	}
 
-	c.HTML(http.StatusOK, "practice_result_page.html", PracticeResultPageData{
+	c.HTML(http.StatusOK, "practice_result_page.html", model.PracticeResultPageData{
 		PracticeID: practiceID, Total: len(items), CorrectCount: correctCount,
 		WrongCount: wrongCount, Items: items,
 	})

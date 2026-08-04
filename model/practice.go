@@ -1,4 +1,4 @@
-package service
+package model
 
 import (
 	"math/rand"
@@ -118,14 +118,14 @@ func (p *Practice) Reset() {
 }
 
 // CheckPractice 使用已保存的答案批改练习中的全部题目。
-func (p *Practice) CheckPractice(qs *QuestionServer) *PracticeResponse {
+func (p *Practice) CheckPractice(qm QuestionManager) *PracticeResponse {
 	Total := len(p.Questions)
 	CorrectCount := 0
 	WrongCount := 0
 	Details := make([]QuestionResponse, 0, Total)
 
 	for _, id := range p.Questions {
-		question, err := qs.DB.GetQuestion(id)
+		question, err := qm.GetQuestion(id)
 		if err != nil {
 			continue
 		}

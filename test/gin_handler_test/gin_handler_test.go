@@ -1,6 +1,7 @@
 package gin_handler_test
 
 import (
+	"TheBook/model"
 	"TheBook/service"
 	"bytes"
 	"encoding/json"
@@ -35,7 +36,7 @@ func TestMain(M *testing.M) {
 
 func TestInitQuestionPage(t *testing.T) {
 
-	request := service.Request{UserID: "test_user", QuestionID: 1, Choice: 5}
+	request := model.Request{UserID: "test_user", QuestionID: 1, Choice: 5}
 	jsonData, err := json.Marshal(request)
 	if err != nil {
 		t.Fatalf("Failed to marshal request: %v", err)
@@ -94,7 +95,7 @@ func TestInitQuestionPage(t *testing.T) {
 
 func TestPostQuestionRedirect(t *testing.T) {
 
-	request := service.Request{
+	request := model.Request{
 		UserID:     "test_user",
 		QuestionID: 1,
 		Choice:     5,
@@ -223,7 +224,7 @@ func TestGetQuestionPage(t *testing.T) {
 }
 
 func TestCheckAnswerTrue(t *testing.T) {
-	request := service.Request{
+	request := model.Request{
 		UserID:     "test_user",
 		QuestionID: 1,
 		Choice:     1,
@@ -261,7 +262,7 @@ func TestCheckAnswerTrue(t *testing.T) {
 }
 
 func TestCheckAnswerFalse(t *testing.T) {
-	request := service.Request{
+	request := model.Request{
 		UserID:     "test_user",
 		QuestionID: 1,
 		Choice:     2,
@@ -343,7 +344,7 @@ func TestPostRandomQuestion(t *testing.T) {
 }
 
 func TestGenerateExam(t *testing.T) {
-	request := service.Request{
+	request := model.Request{
 		UserID:       "test_user",
 		PracticeSize: 5,
 	}
@@ -377,14 +378,14 @@ func TestHandlerPostSubmitAnswer(t *testing.T) {
 		t.Fatalf("Failed to get question: %v", err)
 	}
 
-	practice := (&service.Practice{}).NewPractice()
+	practice := (&model.Practice{}).NewPractice()
 	practice.ID = practiceID
 	practice.Questions = []int{question.ID}
 	questionServer.PM[practiceID] = practice
 	t.Cleanup(func() { delete(questionServer.PM, practiceID) })
 
 	t.Run("success", func(t *testing.T) {
-		request := service.Request{
+		request := model.Request{
 			PracticeID: practiceID,
 			QuestionID: question.ID,
 			Choice:     question.Answer,
@@ -461,7 +462,7 @@ func TestHandlerSubmitPractice(t *testing.T) {
 			t.Fatalf("Failed to get question: %v", err)
 		}
 
-		practice := (&service.Practice{}).NewPractice()
+		practice := (&model.Practice{}).NewPractice()
 		practice.ID = practiceID
 		practice.Questions = []int{question.ID}
 		practice.Answers[question.ID] = question.Answer
@@ -480,7 +481,7 @@ func TestHandlerSubmitPractice(t *testing.T) {
 			t.Fatalf("Expected status code 200, got %d: %s", w.Code, w.Body.String())
 		}
 
-		var response service.PracticeResponse
+		var response model.PracticeResponse
 		if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
 			t.Fatalf("Failed to unmarshal response: %v", err)
 		}
@@ -531,7 +532,7 @@ func TestHandlerGetPracticePage(t *testing.T) {
 		t.Fatalf("Failed to get question: %v", err)
 	}
 
-	practice := (&service.Practice{}).NewPractice()
+	practice := (&model.Practice{}).NewPractice()
 	practice.ID = practiceID
 	practice.Questions = []int{question.ID}
 	practice.TotalQuestions = questionServer.DB.GetTotalCount()
@@ -578,7 +579,7 @@ func TestHandlerGetPracticeResultPage(t *testing.T) {
 		t.Fatalf("Failed to get question: %v", err)
 	}
 
-	practice := (&service.Practice{}).NewPractice()
+	practice := (&model.Practice{}).NewPractice()
 	practice.ID = practiceID
 	practice.Questions = []int{question.ID}
 	practice.Answers[question.ID] = question.Answer
@@ -629,7 +630,7 @@ func TestHandlerGetRandomQuestionPage(t *testing.T) {
 		t.Fatal("Expected at least two questions")
 	}
 
-	session := &service.RandomSession{
+	session := &model.RandomSession{
 		ID:        sessionID,
 		Questions: questionIDs[:2],
 	}

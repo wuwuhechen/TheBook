@@ -1,4 +1,4 @@
-package service
+package model
 
 // Request 包含客户端提交的题目与练习请求数据。
 type Request struct {

@@ -2,6 +2,7 @@ package service
 
 import (
 	"TheBook/config"
+	"TheBook/model"
 	"TheBook/utils"
 	"encoding/json"
 	"fmt"
@@ -43,8 +44,8 @@ func DataInit(path string) (*QuestionServer, error) {
 
 	return &QuestionServer{
 		DB: db,
-		PM: make(map[int]*Practice),
-		RS: make(map[int]*RandomSession),
+		PM: make(map[int]*model.Practice),
+		RS: make(map[int]*model.RandomSession),
 	}, nil
 }
 
@@ -77,19 +78,19 @@ func GinInit(path string, questionServer *QuestionServer) (*gin.Engine, error) {
 }
 
 // LoadQuestions 解析 path 指向的 JSON 题库文件。
-func LoadQuestions(path string) (QuestionManager, error) {
+func LoadQuestions(path string) (model.QuestionManager, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open questions file: %v", err)
 	}
 	defer file.Close()
 
-	var questionBank []Question
+	var questionBank []model.Question
 	if err := json.NewDecoder(file).Decode(&questionBank); err != nil {
 		return nil, fmt.Errorf("failed to decode questions: %v", err)
 	}
 
-	bank := &QuestionBank{Questions: make(map[int]Question)}
+	bank := &model.QuestionBank{Questions: make(map[int]model.Question)}
 	for _, question := range questionBank {
 		bank.AddQuestion(question)
 	}
