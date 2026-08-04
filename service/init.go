@@ -49,17 +49,24 @@ func GinInit(path string, questionServer *QuestionServer) (*gin.Engine, error) {
 	r := gin.Default()
 	r.LoadHTMLGlob(path)
 
-	r.POST("/random", questionServer.HandlerPostRandomQuestion)
-	r.POST("/request", questionServer.HandlerPostQuestion)
-	r.POST("/check_answer", questionServer.HandlerPostCheckAnswer)
-	r.POST("/practice_init", questionServer.HandlerPostPracticeInit)
-	r.POST("/submit_answer", questionServer.HandlerPostSubmitAnswer)
-	r.POST("/submit_practice/:practice_id", questionServer.HandlerSubmitPractice)
+	// homeMode 管理首页入口。
+	homeMode := r.Group("/")
+	homeMode.GET("", questionServer.HandlerGetHomePage)
 
-	r.GET("/question", questionServer.HandlerGetQuestionPage)
-	r.GET("/practice/:practice_id/result", questionServer.HandlerGetPracticeResultPage)
-	r.GET("/practice/:practice_id", questionServer.HandlerGetPracticePage)
-	r.GET("/", questionServer.HandlerGetHomePage)
+	// questionMode 管理单题浏览、随机出题和即时判题。
+	questionMode := r.Group("/question")
+	questionMode.POST("/random", questionServer.HandlerPostRandomQuestion)
+	questionMode.POST("/request", questionServer.HandlerPostQuestion)
+	questionMode.POST("/check_answer", questionServer.HandlerPostCheckAnswer)
+	questionMode.GET("", questionServer.HandlerGetQuestionPage)
+
+	// practiceMode 管理套题初始化、答题、提交和结果查看。
+	practiceMode := r.Group("/practice")
+	practiceMode.POST("/init", questionServer.HandlerPostPracticeInit)
+	practiceMode.POST("/answer", questionServer.HandlerPostSubmitAnswer)
+	practiceMode.POST("/:practice_id/submit", questionServer.HandlerSubmitPractice)
+	practiceMode.GET("/:practice_id", questionServer.HandlerGetPracticePage)
+	practiceMode.GET("/:practice_id/result", questionServer.HandlerGetPracticeResultPage)
 
 	return r, nil
 }

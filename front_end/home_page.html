@@ -6,7 +6,7 @@
 
 <h2>获取题目</h2>
 
-<form action="/request" method="POST">
+<form action="/question/request" method="POST">
 
     <input 
         type="hidden"
@@ -20,7 +20,7 @@
 
 </form>
 
-<form action="/random" method="POST">
+<form action="/question/random" method="POST">
 
     <button type="submit">
         随机获取题目
@@ -40,7 +40,7 @@
     document.getElementById("practiceForm").addEventListener("submit", async function (event) {
         event.preventDefault();
 
-        const response = await fetch("/practice_init", {
+        const response = await fetch("/practice/init", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

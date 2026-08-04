@@ -41,7 +41,7 @@ func TestInitQuestionPage(t *testing.T) {
 		t.Fatalf("Failed to marshal request: %v", err)
 	}
 
-	req, err := http.NewRequest("POST", "/request", bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", "/question/request", bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
 
 	req.Header.Set(
@@ -111,7 +111,7 @@ func TestPostQuestionRedirect(t *testing.T) {
 
 	req, err := http.NewRequest(
 		"POST",
-		"/request",
+		"/question/request",
 		bytes.NewBuffer(jsonData),
 	)
 
@@ -234,7 +234,7 @@ func TestCheckAnswerTrue(t *testing.T) {
 		t.Fatalf("Failed to marshal request: %v", err)
 	}
 
-	req, err := http.NewRequest("POST", "/check_answer", bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", "/question/check_answer", bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
 
 	w := httptest.NewRecorder()
@@ -272,7 +272,7 @@ func TestCheckAnswerFalse(t *testing.T) {
 		t.Fatalf("Failed to marshal request: %v", err)
 	}
 
-	req, err := http.NewRequest("POST", "/check_answer", bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", "/question/check_answer", bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
 
 	w := httptest.NewRecorder()
@@ -326,7 +326,7 @@ func TestGetHomePage(t *testing.T) {
 }
 
 func TestPostRandomQuestion(t *testing.T) {
-	req, err := http.NewRequest("POST", "/random", nil)
+	req, err := http.NewRequest("POST", "/question/random", nil)
 	if err != nil {
 		t.Fatalf("Failed to create request: %v", err)
 	}
@@ -350,7 +350,7 @@ func TestGenerateExam(t *testing.T) {
 		t.Fatalf("Failed to marshal request: %v", err)
 	}
 
-	req, err := http.NewRequest("POST", "/practice_init", bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", "/practice/init", bytes.NewBuffer(jsonData))
 	if err != nil {
 		t.Fatalf("Failed to create request: %v", err)
 	}
@@ -391,7 +391,7 @@ func TestHandlerPostSubmitAnswer(t *testing.T) {
 			t.Fatalf("Failed to marshal request: %v", err)
 		}
 
-		req, err := http.NewRequest("POST", "/submit_answer", bytes.NewBuffer(jsonData))
+		req, err := http.NewRequest("POST", "/practice/answer", bytes.NewBuffer(jsonData))
 		if err != nil {
 			t.Fatalf("Failed to create request: %v", err)
 		}
@@ -420,7 +420,7 @@ func TestHandlerPostSubmitAnswer(t *testing.T) {
 
 	t.Run("practice not found", func(t *testing.T) {
 		body := `{"practice_id":999999,"question_id":1,"choice":1}`
-		req, err := http.NewRequest("POST", "/submit_answer", strings.NewReader(body))
+		req, err := http.NewRequest("POST", "/practice/answer", strings.NewReader(body))
 		if err != nil {
 			t.Fatalf("Failed to create request: %v", err)
 		}
@@ -435,7 +435,7 @@ func TestHandlerPostSubmitAnswer(t *testing.T) {
 	})
 
 	t.Run("invalid JSON", func(t *testing.T) {
-		req, err := http.NewRequest("POST", "/submit_answer", strings.NewReader(`{"practice_id":`))
+		req, err := http.NewRequest("POST", "/practice/answer", strings.NewReader(`{"practice_id":`))
 		if err != nil {
 			t.Fatalf("Failed to create request: %v", err)
 		}
@@ -465,7 +465,7 @@ func TestHandlerSubmitPractice(t *testing.T) {
 		questionServer.PM[practiceID] = practice
 		t.Cleanup(func() { delete(questionServer.PM, practiceID) })
 
-		req, err := http.NewRequest("POST", "/submit_practice/10002", nil)
+		req, err := http.NewRequest("POST", "/practice/10002/submit", nil)
 		if err != nil {
 			t.Fatalf("Failed to create request: %v", err)
 		}
@@ -493,7 +493,7 @@ func TestHandlerSubmitPractice(t *testing.T) {
 	})
 
 	t.Run("invalid practice ID", func(t *testing.T) {
-		req, err := http.NewRequest("POST", "/submit_practice/not-a-number", nil)
+		req, err := http.NewRequest("POST", "/practice/not-a-number/submit", nil)
 		if err != nil {
 			t.Fatalf("Failed to create request: %v", err)
 		}
@@ -507,7 +507,7 @@ func TestHandlerSubmitPractice(t *testing.T) {
 	})
 
 	t.Run("practice not found", func(t *testing.T) {
-		req, err := http.NewRequest("POST", "/submit_practice/999999", nil)
+		req, err := http.NewRequest("POST", "/practice/999999/submit", nil)
 		if err != nil {
 			t.Fatalf("Failed to create request: %v", err)
 		}

@@ -59,7 +59,7 @@
     </form>
 
     {{if .HasLastID}}
-    <form id="lastQuestionForm" action="/request" method="POST">
+    <form id="lastQuestionForm" action="/question/request" method="POST">
       <input type="hidden" name="question_id" value="{{.LastID}}" />
 
       <button type="submit">上一题</button>
@@ -67,7 +67,7 @@
     {{end}}
 
     {{if .HasNextID}}
-    <form id="nextQuestionForm" action="/request" method="POST">
+    <form id="nextQuestionForm" action="/question/request" method="POST">
       <input type="hidden" name="question_id" value="{{.NextID}}" />
 
       <button type="submit">下一题</button>
@@ -98,7 +98,7 @@
           choice: Number(choice),
         };
 
-        const response = await fetch("/check_answer", {
+        const response = await fetch("/question/check_answer", {
           method: "POST",
 
           headers: {
