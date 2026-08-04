@@ -1,0 +1,26 @@
+[
+  {
+    "user_id": 0,
+    "username": "admin",
+    "password": "Admin123!",
+    "nickname": "Administrator"
+  },
+  {
+    "user_id": 1,
+    "username": "test_user",
+    "password": "Test123!",
+    "nickname": "Test User"
+  },
+  {
+    "user_id": 2,
+    "username": "alice",
+    "password": "Alice123!",
+    "nickname": "Alice"
+  },
+  {
+    "user_id": 3,
+    "username": "bob",
+    "password": "Bob123!",
+    "nickname": "Bob"
+  }
+]

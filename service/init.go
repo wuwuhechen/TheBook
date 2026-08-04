@@ -32,6 +32,12 @@ func InitSystem() (*gin.Engine, *QuestionServer, error) {
 		return nil, nil, fmt.Errorf("failed to initialize Gin: %v", err)
 	}
 
+	usPath := fmt.Sprintf("%s/%s", rootPath, cfg.User.UserBankPath)
+	_, err = UserInit(usPath)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to initialize user data: %v", err)
+	}
+
 	return r, questionServer, nil
 }
 
@@ -47,6 +53,15 @@ func DataInit(path string) (*QuestionServer, error) {
 		PM: make(map[int]*model.Practice),
 		RS: make(map[int]*model.RandomSession),
 	}, nil
+}
+
+func UserInit(path string) (*model.UserBank, error) {
+	userBank, err := LoadUsers(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load user bank: %v", err)
+	}
+
+	return userBank, nil
 }
 
 // GinInit 创建 Gin 引擎、加载 path 中的模板并注册路由。
@@ -96,4 +111,24 @@ func LoadQuestions(path string) (model.QuestionManager, error) {
 	}
 
 	return bank, nil
+}
+
+func LoadUsers(path string) (*model.UserBank, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open user bank file: %v", err)
+	}
+	defer file.Close()
+
+	var users []*model.User
+	if err := json.NewDecoder(file).Decode(&users); err != nil {
+		return nil, fmt.Errorf("failed to decode users: %v", err)
+	}
+
+	userBank := model.NewUserBank()
+	for _, user := range users {
+		userBank.AddUser(user)
+	}
+
+	return userBank, nil
 }

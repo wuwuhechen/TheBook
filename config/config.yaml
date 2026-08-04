@@ -3,3 +3,6 @@ database:
 
 front_end:
   template_path: "front_end/*"
+
+user:
+  user_bank_path: "database/users.json"
