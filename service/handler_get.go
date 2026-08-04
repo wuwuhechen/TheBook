@@ -23,6 +23,45 @@ func (qs *QuestionServer) HandlerGetQuestionPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "question_page.html", NewQuestionData(question, qs.DB.GetTotalCount()))
 }
 
+// HandlerGetRandomQuestionPage 渲染随机答题会话中的当前题目并处理前后切换。
+func (qs *QuestionServer) HandlerGetRandomQuestionPage(c *gin.Context) {
+	sessionID, err := strconv.Atoi(c.Param("session_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid random session ID"})
+		return
+	}
+
+	session := qs.RS[sessionID]
+	if session == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Random session not found"})
+		return
+	}
+
+	switch c.Query("direction") {
+	case "last":
+		if session.CurrentIndex > 0 {
+			session.CurrentIndex--
+		}
+	case "next":
+		if session.CurrentIndex < len(session.Questions)-1 {
+			session.CurrentIndex++
+		}
+	}
+
+	question, err := qs.DB.GetQuestion(session.CurrentQuestionID())
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Question not found"})
+		return
+	}
+
+	pageData := NewQuestionData(question, len(session.Questions))
+	pageData.SetID(session.CurrentIndex + 1)
+	pageData.SetRandomSessionID(sessionID)
+	pageData.SetHasLastID(session.CurrentIndex > 0)
+	pageData.SetHasNextID(session.CurrentIndex < len(session.Questions)-1)
+	c.HTML(http.StatusOK, "question_page.html", pageData)
+}
+
 // HandlerGetHomePage 渲染应用首页。
 func (qs *QuestionServer) HandlerGetHomePage(c *gin.Context) {
 	c.HTML(http.StatusOK, "home_page.html", nil)
@@ -57,13 +96,6 @@ func (qs *QuestionServer) HandlerGetPracticePage(c *gin.Context) {
 	}
 
 	questionID := practice.GetCurrentQuestionID()
-	lastID, nextID := 0, 0
-	if practice.CurrentIndex > 0 {
-		lastID = practice.CurrentIndex - 1
-	}
-	if practice.CurrentIndex < len(practice.Questions)-1 {
-		nextID = practice.CurrentIndex + 1
-	}
 	question, err := qs.DB.GetQuestion(questionID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Question not found"})
@@ -73,8 +105,6 @@ func (qs *QuestionServer) HandlerGetPracticePage(c *gin.Context) {
 	pageData := NewQuestionData(question, practice.TotalQuestions)
 	pageData.SetID(practice.CurrentIndex + 1)
 	pageData.SetPracticeID(practiceID)
-	pageData.SetLastID(lastID)
-	pageData.SetNextID(nextID, practice.TotalQuestions)
 	pageData.SetHasLastID(practice.CurrentIndex > 0)
 	pageData.SetHasNextID(practice.CurrentIndex < len(practice.Questions)-1)
 	pageData.SetDuration(practice.GetDuration() - time.Since(practice.StartTime))

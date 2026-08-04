@@ -23,12 +23,13 @@ func (qs *QuestionServer) HandlerPostQuestion(c *gin.Context) {
 
 // HandlerPostRandomQuestion 重定向到随机选择的题目。
 func (qs *QuestionServer) HandlerPostRandomQuestion(c *gin.Context) {
-	question, err := qs.DB.GetRandomQuestionID()
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+	session := NewRandomSession(qs.DB)
+	if len(session.Questions) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No questions available"})
 		return
 	}
-	c.Redirect(http.StatusFound, "/question?question_id="+strconv.Itoa(question.ID))
+	qs.RS[session.ID] = session
+	c.Redirect(http.StatusFound, "/question/random/"+strconv.Itoa(session.ID))
 }
 
 // HandlerPostCheckAnswer 检查单题答案并返回 JSON 结果。

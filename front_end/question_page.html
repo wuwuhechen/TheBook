@@ -59,16 +59,24 @@
     </form>
 
     {{if .HasLastID}}
-    <form id="lastQuestionForm" action="/question/request" method="POST">
+    <form id="lastQuestionForm" action="{{if .RandomSessionID}}/question/random/{{.RandomSessionID}}{{else}}/question/request{{end}}" method="{{if .RandomSessionID}}GET{{else}}POST{{end}}">
+      {{if .RandomSessionID}}
+      <input type="hidden" name="direction" value="last" />
+      {{else}}
       <input type="hidden" name="question_id" value="{{.LastID}}" />
+      {{end}}
 
       <button type="submit">上一题</button>
     </form>
     {{end}}
 
     {{if .HasNextID}}
-    <form id="nextQuestionForm" action="/question/request" method="POST">
+    <form id="nextQuestionForm" action="{{if .RandomSessionID}}/question/random/{{.RandomSessionID}}{{else}}/question/request{{end}}" method="{{if .RandomSessionID}}GET{{else}}POST{{end}}">
+      {{if .RandomSessionID}}
+      <input type="hidden" name="direction" value="next" />
+      {{else}}
       <input type="hidden" name="question_id" value="{{.NextID}}" />
+      {{end}}
 
       <button type="submit">下一题</button>
     </form>

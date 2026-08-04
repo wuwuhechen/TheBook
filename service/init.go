@@ -41,7 +41,11 @@ func DataInit(path string) (*QuestionServer, error) {
 		return nil, fmt.Errorf("failed to load questions: %v", err)
 	}
 
-	return &QuestionServer{DB: db, PM: make(map[int]*Practice)}, nil
+	return &QuestionServer{
+		DB: db,
+		PM: make(map[int]*Practice),
+		RS: make(map[int]*RandomSession),
+	}, nil
 }
 
 // GinInit 创建 Gin 引擎、加载 path 中的模板并注册路由。
@@ -58,6 +62,7 @@ func GinInit(path string, questionServer *QuestionServer) (*gin.Engine, error) {
 	questionMode.POST("/random", questionServer.HandlerPostRandomQuestion)
 	questionMode.POST("/request", questionServer.HandlerPostQuestion)
 	questionMode.POST("/check_answer", questionServer.HandlerPostCheckAnswer)
+	questionMode.GET("/random/:session_id", questionServer.HandlerGetRandomQuestionPage)
 	questionMode.GET("", questionServer.HandlerGetQuestionPage)
 
 	// practiceMode 管理套题初始化、答题、提交和结果查看。

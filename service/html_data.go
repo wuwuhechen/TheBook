@@ -29,6 +29,9 @@ type QuestionPageData struct {
 	// PracticeID 字段用于存储练习的唯一标识符
 	PracticeID int
 
+	// RandomSessionID 保存随机答题会话的唯一标识符。
+	RandomSessionID int
+
 	// Category 字段用于存储问题的分类信息
 	Category string
 
@@ -108,6 +111,11 @@ func (q *QuestionPageData) SetDuration(duration time.Duration) {
 // SetPracticeID 设置当前显示题目所属的练习 ID。
 func (q *QuestionPageData) SetPracticeID(practiceID int) {
 	q.PracticeID = practiceID
+}
+
+// SetRandomSessionID 设置当前页面所属的随机答题会话 ID。
+func (q *QuestionPageData) SetRandomSessionID(sessionID int) {
+	q.RandomSessionID = sessionID
 }
 
 // SetID 设置题目显示序号。

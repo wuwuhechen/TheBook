@@ -39,4 +39,6 @@ type QuestionServer struct {
 	DB QuestionManager
 
 	PM map[int]*Practice
+
+	RS map[int]*RandomSession
 }

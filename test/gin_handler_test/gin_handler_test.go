@@ -337,6 +337,9 @@ func TestPostRandomQuestion(t *testing.T) {
 	if w.Code != http.StatusFound {
 		t.Fatalf("Expected status code 302, got %d", w.Code)
 	}
+	if !strings.HasPrefix(w.Header().Get("Location"), "/question/random/") {
+		t.Fatalf("Expected random-session redirect, got %q", w.Header().Get("Location"))
+	}
 }
 
 func TestGenerateExam(t *testing.T) {
@@ -617,4 +620,48 @@ func TestHandlerGetPracticeResultPage(t *testing.T) {
 			t.Fatalf("Expected status code 400, got %d", w.Code)
 		}
 	})
+}
+
+func TestHandlerGetRandomQuestionPage(t *testing.T) {
+	const sessionID = 10005
+	questionIDs := questionServer.DB.GetALLQuestionIDs()
+	if len(questionIDs) < 2 {
+		t.Fatal("Expected at least two questions")
+	}
+
+	session := &service.RandomSession{
+		ID:        sessionID,
+		Questions: questionIDs[:2],
+	}
+	questionServer.RS[sessionID] = session
+	t.Cleanup(func() { delete(questionServer.RS, sessionID) })
+
+	req, err := http.NewRequest("GET", "/question/random/10005", nil)
+	if err != nil {
+		t.Fatalf("Failed to create request: %v", err)
+	}
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("Expected status code 200, got %d: %s", w.Code, w.Body.String())
+	}
+	if session.CurrentIndex != 0 {
+		t.Fatalf("Expected initial index 0, got %d", session.CurrentIndex)
+	}
+
+	req, err = http.NewRequest("GET", "/question/random/10005?direction=next", nil)
+	if err != nil {
+		t.Fatalf("Failed to create next request: %v", err)
+	}
+	w = httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("Expected status code 200, got %d: %s", w.Code, w.Body.String())
+	}
+	if session.CurrentIndex != 1 {
+		t.Fatalf("Expected next index 1, got %d", session.CurrentIndex)
+	}
+	if !strings.Contains(w.Body.String(), `name="direction" value="last"`) {
+		t.Fatal("Response does not contain random-session previous navigation")
+	}
 }
