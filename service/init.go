@@ -12,35 +12,36 @@ import (
 )
 
 // InitSystem 加载配置并初始化题目服务与 Gin 引擎。
-func InitSystem() (*gin.Engine, *Server, error) {
+func InitSystem() (*Server, error) {
 	rootPath, err := utils.FindProjectRoot()
 
 	cfg, err := config.LoadConfig(fmt.Sprintf("%s/config/config.yaml", rootPath))
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to find project root: %v", err)
+		return nil, fmt.Errorf("failed to find project root: %v", err)
 	}
 
 	qsPath := fmt.Sprintf("%s/%s", rootPath, cfg.Database.DatabasePath)
 	questionServer, err := DataInit(qsPath)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to initialize data: %v", err)
+		return nil, fmt.Errorf("failed to initialize data: %v", err)
 	}
 
 	frontEndPath := fmt.Sprintf("%s/%s", rootPath, cfg.FrontEnd.TemplatePath)
 	r, err := GinInit(frontEndPath, questionServer)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to initialize Gin: %v", err)
+		return nil, fmt.Errorf("failed to initialize Gin: %v", err)
 	}
 
 	usPath := fmt.Sprintf("%s/%s", rootPath, cfg.User.UserBankPath)
 	userServer, err := UserInit(usPath)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to initialize user data: %v", err)
+		return nil, fmt.Errorf("failed to initialize user data: %v", err)
 	}
 
-	return r, &Server{
-		QS: questionServer,
-		US: userServer,
+	return &Server{
+		Router: r,
+		QS:     questionServer,
+		US:     userServer,
 	}, nil
 }
 

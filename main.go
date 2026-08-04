@@ -6,10 +6,10 @@ import (
 )
 
 func main() {
-	r, _, err := service.InitSystem()
+	server, err := service.InitSystem()
 	if err != nil {
 		panic(err)
 	}
 
-	r.Run(":8080")
+	server.Router.Run(":8080")
 }

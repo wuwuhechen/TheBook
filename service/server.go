@@ -1,6 +1,9 @@
 package service
 
+import "github.com/gin-gonic/gin"
+
 type Server struct {
-	QS *QuestionServer
-	US UserServer
+	Router *gin.Engine
+	QS     *QuestionServer
+	US     UserServer
 }
