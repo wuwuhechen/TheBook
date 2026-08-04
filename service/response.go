@@ -1,6 +1,6 @@
 package service
 
-// QuestionResponse 结构体用于表示用户提交答案后的响应结果
+// QuestionResponse 描述单题答案是否正确及其解析。
 type QuestionResponse struct {
 	// Correct 字段用于指示用户提交的答案是否正确
 	Correct bool `json:"correct"`
@@ -9,6 +9,7 @@ type QuestionResponse struct {
 	Explanation string `json:"explanation"`
 }
 
+// NewResponse 根据判题结果创建 QuestionResponse。
 func NewResponse(correct bool, explanation string) *QuestionResponse {
 	return &QuestionResponse{
 		Correct:     correct,
@@ -16,6 +17,7 @@ func NewResponse(correct bool, explanation string) *QuestionResponse {
 	}
 }
 
+// PracticeResponse 汇总一套练习的判题结果。
 type PracticeResponse struct {
 	PracticeID int `json:"practice_id"`
 

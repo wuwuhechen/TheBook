@@ -13,18 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-/*
-InitSystem 初始化系统，包括加载配置文件、初始化数据和Gin引擎
-
-参数
-
-	无
-
-返回值
-
-	*gin.Engine: Gin引擎实例
-	*QuestionServer: 问题服务器实例
-*/
+// InitSystem 加载配置并初始化题目服务与 Gin 引擎。
 func InitSystem() (*gin.Engine, *QuestionServer, error) {
 	rootPath, err := utils.FindProjectRoot()
 
@@ -49,18 +38,7 @@ func InitSystem() (*gin.Engine, *QuestionServer, error) {
 	return r, questionServer, nil
 }
 
-/*
-DataInit 初始化数据，包括加载问题数据
-
-参数
-
-	path string: 问题数据文件的路径
-
-返回值
-
-	*QuestionServer: 问题服务器实例
-	error: 错误信息
-*/
+// DataInit 从 path 加载题目，并创建空的练习管理器。
 func DataInit(path string) (*QuestionServer, error) {
 	db, err := LoadQuestions(path)
 	if err != nil {
@@ -78,19 +56,7 @@ func DataInit(path string) (*QuestionServer, error) {
 	return questionServer, nil
 }
 
-/*
-GinInit 初始化Gin引擎，包括设置路由和加载HTML模板
-
-参数
-
-	path string: HTML模板文件的路径
-	questionServer *QuestionServer: 问题服务器实例
-
-返回值
-
-	*gin.Engine: Gin引擎实例
-	error: 错误信息
-*/
+// GinInit 创建 Gin 引擎、加载 path 中的模板并注册路由。
 func GinInit(path string, questionServer *QuestionServer) (*gin.Engine, error) {
 	r := gin.Default()
 
@@ -119,18 +85,7 @@ func GinInit(path string, questionServer *QuestionServer) (*gin.Engine, error) {
 	return r, nil
 }
 
-/*
-LoadQuestions 加载问题数据
-
-参数
-
-	path string: 问题数据文件的路径
-
-返回值
-
-	*QuestionServer: 问题服务器实例
-	error: 错误信息
-*/
+// LoadQuestions 解析 path 指向的 JSON 题库文件。
 func LoadQuestions(path string) (QuestionManager, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -158,13 +113,7 @@ func LoadQuestions(path string) (QuestionManager, error) {
 	return QuestionManager(bank), nil
 }
 
-/*
-HandlerPostQuestion 处理用户提交答案的请求
-
-参数
-
-	c *gin.Context: Gin上下文对象
-*/
+// HandlerPostQuestion 校验请求的题目并重定向到题目页面。
 func (qs *QuestionServer) HandlerPostQuestion(c *gin.Context) {
 	var userReq Request
 	if err := c.ShouldBind(&userReq); err != nil {
@@ -184,13 +133,7 @@ func (qs *QuestionServer) HandlerPostQuestion(c *gin.Context) {
 	)
 }
 
-/*
-HandlerPostRandomQuestion 处理用户请求随机获取题目的请求
-
-参数
-
-	c *gin.Context: Gin上下文对象
-*/
+// HandlerPostRandomQuestion 重定向到随机选择的题目。
 func (qs *QuestionServer) HandlerPostRandomQuestion(c *gin.Context) {
 	question, err := qs.DB.GetRandomQuestionID()
 	if err != nil {
@@ -204,13 +147,7 @@ func (qs *QuestionServer) HandlerPostRandomQuestion(c *gin.Context) {
 	)
 }
 
-/*
-HandlerPostCheckAnswer 处理用户提交答案的请求
-
-参数
-
-	c *gin.Context: Gin上下文对象
-*/
+// HandlerPostCheckAnswer 检查单题答案并返回 JSON 结果。
 func (qs *QuestionServer) HandlerPostCheckAnswer(c *gin.Context) {
 	var userReq Request
 
@@ -231,13 +168,7 @@ func (qs *QuestionServer) HandlerPostCheckAnswer(c *gin.Context) {
 	c.JSON(200, response)
 }
 
-/*
-HandlerGetQuestionPage 处理获取问题页面的请求
-
-参数
-
-	c *gin.Context: Gin上下文对象
-*/
+// HandlerGetQuestionPage 渲染独立答题页面。
 func (qs *QuestionServer) HandlerGetQuestionPage(c *gin.Context) {
 	questionID, err := strconv.Atoi(c.Query("question_id"))
 	if err != nil {
@@ -260,17 +191,12 @@ func (qs *QuestionServer) HandlerGetQuestionPage(c *gin.Context) {
 
 }
 
-/*
-HandlerGetHomePage 处理获取首页的请求
-
-参数
-
-	c *gin.Context: Gin上下文对象
-*/
+// HandlerGetHomePage 渲染应用首页。
 func (qs *QuestionServer) HandlerGetHomePage(c *gin.Context) {
 	c.HTML(200, "home_page.html", nil)
 }
 
+// HandlerPostPracticeInit 创建练习并重定向到第一题。
 func (qs *QuestionServer) HandlerPostPracticeInit(c *gin.Context) {
 	var userReq Request
 	if err := c.ShouldBindJSON(&userReq); err != nil {
@@ -290,6 +216,7 @@ func (qs *QuestionServer) HandlerPostPracticeInit(c *gin.Context) {
 	)
 }
 
+// HandlerPostSubmitAnswer 保存练习中一道题的答案。
 func (qs *QuestionServer) HandlerPostSubmitAnswer(c *gin.Context) {
 	var req Request
 
@@ -311,6 +238,7 @@ func (qs *QuestionServer) HandlerPostSubmitAnswer(c *gin.Context) {
 	})
 }
 
+// HandlerSubmitPractice 批改练习、标记完成状态并返回汇总结果。
 func (qs *QuestionServer) HandlerSubmitPractice(c *gin.Context) {
 	requestIDStr := c.Param("practice_id")
 	practiceID, err := strconv.Atoi(requestIDStr)
@@ -332,6 +260,7 @@ func (qs *QuestionServer) HandlerSubmitPractice(c *gin.Context) {
 	c.JSON(200, results)
 }
 
+// HandlerGetPracticePage 渲染当前练习题目并处理题目导航。
 func (qs *QuestionServer) HandlerGetPracticePage(c *gin.Context) {
 	requestIDStr := c.Param("practice_id")
 	practiceID, err := strconv.Atoi(requestIDStr)
@@ -391,6 +320,7 @@ func (qs *QuestionServer) HandlerGetPracticePage(c *gin.Context) {
 	c.HTML(200, "practice_page.html", pageData)
 }
 
+// HandlerGetPracticeResultPage 渲染已完成练习的答案与解析页面。
 func (qs *QuestionServer) HandlerGetPracticeResultPage(c *gin.Context) {
 	practiceIDStr := c.Param("practice_id")
 	practiceID, err := strconv.Atoi(practiceIDStr)

@@ -6,6 +6,7 @@ import (
 )
 
 // 套题结构体
+// Practice 保存一次练习的题目、答案和计时状态。
 type Practice struct {
 	// 套题ID
 	ID int `json:"id"`
@@ -35,7 +36,7 @@ type Practice struct {
 	Completed bool `json:"completed"`
 }
 
-// NewPractice 创建一个新的套题实例
+// NewPractice 创建具有默认时限且题目和答案为空的练习。
 func (p *Practice) NewPractice() *Practice {
 	return &Practice{
 		ID:             0,
@@ -50,18 +51,7 @@ func (p *Practice) NewPractice() *Practice {
 	}
 }
 
-/*
-GenerateExam 生成一个新的套题
-
-参数
-
-	qm QuestionManager: 问题管理器接口，用于获取问题数据
-	size int: 套题的大小，即包含的问题数量
-
-返回值
-
-	*Practice: 生成的套题实例
-*/
+// GenerateExam 从 qm 中随机选取最多 size 道题并创建练习。
 func (p *Practice) GenerateExam(qm QuestionManager, size int) *Practice {
 	n := qm.GetTotalCount()
 
@@ -95,7 +85,7 @@ func (p *Practice) GenerateExam(qm QuestionManager, size int) *Practice {
 	}
 }
 
-// GetCurrentQuestionID 返回套题的当前题目ID
+// GetCurrentQuestionID 返回当前练习题目的真实 ID。
 func (p *Practice) GetCurrentQuestionID() int {
 	if p.CurrentIndex < len(p.Questions) {
 		return p.Questions[p.CurrentIndex]
@@ -103,7 +93,7 @@ func (p *Practice) GetCurrentQuestionID() int {
 	return p.TotalQuestions // 返回题库总数表示没有更多问题
 }
 
-// NextQuestionID 返回套题的下一个题目ID
+// NextQuestionID 在存在下一题时前进并返回其 ID。
 func (p *Practice) NextQuestionID() int {
 	if p.CurrentIndex < len(p.Questions)-1 {
 		return p.Questions[p.CurrentIndex+1]
@@ -111,7 +101,7 @@ func (p *Practice) NextQuestionID() int {
 	return p.TotalQuestions
 }
 
-// LastQuestionID 返回套题的上一个题目ID
+// LastQuestionID 在存在上一题时后退并返回其 ID。
 func (p *Practice) LastQuestionID() int {
 	if p.CurrentIndex > 0 {
 		return p.Questions[p.CurrentIndex-1]
@@ -119,6 +109,7 @@ func (p *Practice) LastQuestionID() int {
 	return 0
 }
 
+// Reset 清空答案并重置练习计时和导航状态。
 func (p *Practice) Reset() {
 	p.CurrentIndex = 0
 	p.Answers = make(map[int]int)
@@ -126,6 +117,7 @@ func (p *Practice) Reset() {
 	p.Completed = false
 }
 
+// CheckPractice 使用已保存的答案批改练习中的全部题目。
 func (p *Practice) CheckPractice(qs *QuestionServer) *PracticeResponse {
 	Total := len(p.Questions)
 	CorrectCount := 0
@@ -163,6 +155,7 @@ func (p *Practice) CheckPractice(qs *QuestionServer) *PracticeResponse {
 	}
 }
 
+// GetDuration 返回练习配置的时限。
 func (p *Practice) GetDuration() time.Duration {
 	return p.Duration
 }

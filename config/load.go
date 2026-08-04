@@ -6,17 +6,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-/*
-LoadConfig 加载配置文件
-
-参数
-
-	path string: 配置文件的路径
-
-返回值
-
-	*Config: 配置实例
-*/
+// LoadConfig用于加载配置文件并将其解析为Config结构体
 func LoadConfig(path string) (*Config, error) {
 	viper.SetConfigFile(path)
 

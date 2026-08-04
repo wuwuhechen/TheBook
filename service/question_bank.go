@@ -6,20 +6,14 @@ import (
 	"sort"
 )
 
-// QuestionBank 用于存储和管理问题的结构体
+// QuestionBank 按真实题目 ID 存储题目。
 type QuestionBank struct {
 	Questions map[int]Question
 
 	IDs []int
 }
 
-/*
-NewQuestionBank 创建一个新的问题库实例
-
-返回值
-
-	*QuestionBank: 新的问题库实例
-*/
+// NewQuestionBank 创建空的 QuestionBank。
 func NewQuestionBank() *QuestionBank {
 	return &QuestionBank{
 		Questions: make(map[int]Question),
@@ -27,18 +21,7 @@ func NewQuestionBank() *QuestionBank {
 	}
 }
 
-/*
-GetQuestion 根据问题ID获取问题实例
-
-参数
-
-	id int: 问题ID
-
-返回值
-
-	*Question: 问题实例
-	error: 错误信息
-*/
+// GetQuestion 返回 id 对应的题目。
 func (qb *QuestionBank) GetQuestion(id int) (*Question, error) {
 	question, exists := qb.Questions[id]
 	if !exists {
@@ -47,33 +30,13 @@ func (qb *QuestionBank) GetQuestion(id int) (*Question, error) {
 	return &question, nil
 }
 
-/*
-AddQuestion 向问题库中添加一个问题
-
-参数
-
-	question Question: 要添加的问题
-
-返回值
-
-	无
-*/
+// AddQuestion 按题目 ID 添加或替换题目。
 func (qb *QuestionBank) AddQuestion(question Question) {
 	qb.Questions[question.ID] = question
 	qb.IDs = append(qb.IDs, question.ID)
 }
 
-/*
-GetAllQuestions 返回问题库中所有的问题
-
-参数
-
-	无
-
-返回值
-
-	[]Question: 问题列表
-*/
+// GetAllQuestions 返回所有题目，顺序不保证。
 func (qb *QuestionBank) GetAllQuestions() []Question {
 	questions := make([]Question, 0, len(qb.Questions))
 	for _, question := range qb.Questions {
@@ -82,17 +45,7 @@ func (qb *QuestionBank) GetAllQuestions() []Question {
 	return questions
 }
 
-/*
-GetAllQuestionsSorted 返回按ID排序的问题列表
-
-参数
-
-	无
-
-返回值
-
-	[]Question: 按ID排序的问题列表
-*/
+// GetAllQuestionsSorted 按题目 ID 顺序返回所有题目。
 func (qb *QuestionBank) GetAllQuestionsSorted() []Question {
 	sort.Ints(qb.IDs)
 
@@ -105,13 +58,7 @@ func (qb *QuestionBank) GetAllQuestionsSorted() []Question {
 	return questions
 }
 
-/*
-GetRandomQuestionID 返回一个随机的问题实例
-
-返回值
-
-	*Question: 随机问题实例
-*/
+// GetRandomQuestionID 返回随机选择的一道题目。
 func (qb *QuestionBank) GetRandomQuestionID() (*Question, error) {
 	if len(qb.IDs) == 0 {
 		return nil, fmt.Errorf("no questions available")
@@ -127,17 +74,12 @@ func (qb *QuestionBank) GetRandomQuestionID() (*Question, error) {
 	return &question, nil
 }
 
-/*
-GetTotalCount 返回问题库中问题的总数
-
-返回值
-
-	int: 问题总数
-*/
+// GetTotalCount 返回题库中的题目数量。
 func (qb *QuestionBank) GetTotalCount() int {
 	return len(qb.Questions)
 }
 
+// GetALLQuestionIDs 返回题库中所有题目的 ID。
 func (qb *QuestionBank) GetALLQuestionIDs() []int {
 	ids := make([]int, len(qb.IDs))
 	copy(ids, qb.IDs)

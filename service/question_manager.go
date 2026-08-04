@@ -1,6 +1,6 @@
 package service
 
-// QuestionManager 定义了获取问题的接口
+// QuestionManager 定义查询题库所需的操作。
 type QuestionManager interface {
 	GetQuestion(id int) (*Question, error)
 
@@ -17,6 +17,7 @@ type QuestionManager interface {
 
 var _ QuestionManager = (*QuestionBank)(nil)
 
+// PracticeManager 定义练习会话支持的操作。
 type PracticeManager interface {
 	GetCurrentQuestionID() int
 
@@ -33,7 +34,7 @@ type PracticeManager interface {
 
 var _ PracticeManager = (*Practice)(nil)
 
-// QuestionServer 定义了问题服务器结构体
+// QuestionServer 协调题库存储、练习状态和 HTTP 处理器。
 type QuestionServer struct {
 	DB QuestionManager
 

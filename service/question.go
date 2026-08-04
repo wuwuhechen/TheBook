@@ -2,7 +2,7 @@ package service
 
 import "fmt"
 
-// Question 定义了问题的结构体
+// Question 表示一道选择题及其正确答案。
 type Question struct {
 	// ID 字段用于存储问题的唯一标识符
 	ID int `json:"id"`
@@ -18,21 +18,12 @@ type Question struct {
 	Explanation string `json:"explanation"`
 }
 
-/*
-CheckAnswer 检查用户选择的答案是否正确
-
-参数
-
-	choice int: 用户选择的答案的索引
-
-返回值
-
-	bool: 如果答案正确则返回true，否则返回false
-*/
+// CheckAnswer 报告 choice 是否为 q 的正确答案。
 func (q *Question) CheckAnswer(choice int) bool {
 	return choice == q.Answer
 }
 
+// String 返回 Question 的可读字符串表示。
 func (q *Question) String() string {
 	return fmt.Sprintf("编号: %d\n 分类: %s\n 问题: %s\n 选项: %v\n 答案: %d\n 解析: %s\n",
 		q.ID, q.Category, q.Question, q.Choices, q.Answer, q.Explanation)

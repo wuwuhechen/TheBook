@@ -6,6 +6,7 @@ import (
 )
 
 // QuestionPageData 用于在HTML模板中渲染问题页面的数据结构
+// QuestionPageData 包含渲染题目页或练习页所需的数据。
 type QuestionPageData struct {
 	// ID 字段用于存储问题的唯一标识符
 	ID int
@@ -56,18 +57,7 @@ type QuestionPageData struct {
 	Duration int
 }
 
-/*
-NewQuestionData 创建新的问题页面数据
-
-参数
-
-	question *Question: 问题实例
-	totalQuestions int: 总题数
-
-返回值
-
-	*QuestionPageData: 问题页面数据实例
-*/
+// NewQuestionData 使用 question 和总题数创建页面数据。
 func NewQuestionData(question *Question, totalQuestions int) *QuestionPageData {
 	return &QuestionPageData{
 		ID:             question.ID,
@@ -89,51 +79,49 @@ func NewQuestionData(question *Question, totalQuestions int) *QuestionPageData {
 	}
 }
 
+// SetLastID 设置上一道练习题的真实 ID。
 func (q *QuestionPageData) SetLastID(lastID int) {
 	q.LastID = lastID
 }
 
+// SetNextID 设置下一道练习题的真实 ID 和题目总数。
 func (q *QuestionPageData) SetNextID(nextID int, totalQuestions int) {
 	q.NextID = nextID
 	q.TotalQuestions = totalQuestions
 }
 
+// SetHasLastID 设置是否存在上一道练习题。
 func (q *QuestionPageData) SetHasLastID(hasLastID bool) {
 	q.HasLastID = hasLastID
 }
 
+// SetHasNextID 设置是否存在下一道练习题。
 func (q *QuestionPageData) SetHasNextID(hasNextID bool) {
 	q.HasNextID = hasNextID
 }
 
+// SetDuration 将 duration 转为整秒并保存，供模板渲染。
 func (q *QuestionPageData) SetDuration(duration time.Duration) {
 	q.Duration = int(duration.Seconds())
 }
 
+// SetPracticeID 设置当前显示题目所属的练习 ID。
 func (q *QuestionPageData) SetPracticeID(practiceID int) {
 	q.PracticeID = practiceID
 }
 
+// SetID 设置题目显示序号。
 func (q *QuestionPageData) SetID(ID int) {
 	q.ID = ID
 }
 
-/*
-String 返回问题页面数据的字符串表示
-
-参数
-
-	无
-
-返回值
-
-	string: 问题页面数据的字符串表示
-*/
+// String 返回 QuestionPageData 的可读字符串表示。
 func (q *QuestionPageData) String() string {
 	return fmt.Sprintf("编号：%d\n 分类：%s\n 问题：%s\n 选项A：%s\n 选项B：%s\n 选项C：%s\n 选项D：%s\n 解析：%s\n 总题数：%d",
 		q.ID, q.Category, q.Question, q.OptionA, q.OptionB, q.OptionC, q.OptionD, q.Explanation, q.TotalQuestions)
 }
 
+// PracticeResultItem 描述已完成练习中一道题的答案情况。
 type PracticeResultItem struct {
 	Number            int      `json:"number"`
 	RealID            int      `json:"real_id"`
@@ -149,6 +137,7 @@ type PracticeResultItem struct {
 	Explanation       string   `json:"explanation"`
 }
 
+// PracticeResultPageData 包含练习结果页的汇总信息和逐题数据。
 type PracticeResultPageData struct {
 	PracticeID   int                  `json:"practice_id"`
 	Total        int                  `json:"total"`
