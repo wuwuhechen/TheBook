@@ -9,6 +9,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// HandlerGetRegisterPage 渲染用户注册页面。
+func (s *Server) HandlerGetRegisterPage(c *gin.Context) {
+	c.HTML(http.StatusOK, "register_page.html", nil)
+}
+
+// HandlerGetLoginPage 渲染用户登录页面。
+func (s *Server) HandlerGetLoginPage(c *gin.Context) {
+	c.HTML(http.StatusOK, "login_page.html", nil)
+}
+
 // HandlerGetQuestionPage 渲染独立答题页面。
 func (qs *Server) HandlerGetQuestionPage(c *gin.Context) {
 	questionID, err := strconv.Atoi(c.Query("question_id"))

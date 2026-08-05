@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>登录</title>
+  </head>
+  <body>
+    <h1>登录</h1>
+    <form id="loginForm">
+      <p><label>用户名 <input id="username" required /></label></p>
+      <p><label>密码 <input id="password" type="password" required /></label></p>
+      <button type="submit">登录</button>
+    </form>
+    <p id="message"></p>
+    <p>还没有账号？<a href="/auth/register">去注册</a></p>
+    <script>
+      const loginMessage = new URLSearchParams(window.location.search).get("message");
+      if (loginMessage) {
+        document.getElementById("message").textContent = loginMessage;
+      }
+
+      document.getElementById("loginForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const response = await fetch("/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: document.getElementById("username").value,
+            password: document.getElementById("password").value
+          })
+        });
+        if (response.redirected) {
+          window.location.href = response.url;
+          return;
+        }
+        const result = await response.json();
+        document.getElementById("message").textContent = result.error || "登录失败";
+      });
+    </script>
+  </body>
+</html>

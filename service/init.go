@@ -87,6 +87,8 @@ func GinInit(path string, Server *Server) (*gin.Engine, error) {
 
 	// authMode 管理用户注册、登录和登出。
 	authMode := r.Group("/auth")
+	authMode.GET("/register", Server.HandlerGetRegisterPage)
+	authMode.GET("/login", Server.HandlerGetLoginPage)
 	authMode.POST("/register", Server.HandlerPostRegister)
 	authMode.POST("/login", Server.HandlerPostLogin)
 	authMode.POST("/logout", Server.HandlerPostLogout)

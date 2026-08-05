@@ -2,21 +2,19 @@ package auth
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/gin-gonic/gin"
 )
 
+// AuthMiddleware 验证请求中的 JWT，并将用户信息写入 Gin Context。
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.GetHeader("Authorization")
 		if token == "" {
 			cookieToken, err := c.Cookie("access_token")
-			if err != nil {
-				c.JSON(http.StatusUnauthorized, gin.H{
-					"success": false,
-					"message": "未提供认证Token",
-				})
-				c.Abort()
+			if err != nil || cookieToken == "" {
+				redirectToLogin(c, "未提供认证 Token")
 				return
 			}
 			token = cookieToken
@@ -28,16 +26,18 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		claims, err := ParseToken(token)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"success": false,
-				"message": "Token无效或已过期",
-			})
-			c.Abort()
+			redirectToLogin(c, "Token 无效或已过期")
 			return
 		}
 
 		c.Set("userID", claims.UserID)
 		c.Set("username", claims.UserName)
 		c.Set("nickname", claims.Nickname)
+		c.Next()
 	}
+}
+
+func redirectToLogin(c *gin.Context, message string) {
+	c.Redirect(http.StatusFound, "/auth/login?message="+url.QueryEscape(message))
+	c.Abort()
 }

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>注册</title>
+  </head>
+  <body>
+    <h1>注册</h1>
+    <form id="registerForm">
+      <p><label>用户名 <input id="username" required /></label></p>
+      <p><label>昵称 <input id="nickname" required /></label></p>
+      <p><label>密码 <input id="password" type="password" required /></label></p>
+      <button type="submit">注册</button>
+    </form>
+    <p id="message"></p>
+    <p>已有账号？<a href="/auth/login">去登录</a></p>
+    <script>
+      document.getElementById("registerForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const response = await fetch("/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: document.getElementById("username").value,
+            nickname: document.getElementById("nickname").value,
+            password: document.getElementById("password").value
+          })
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          document.getElementById("message").textContent = result.error || "注册失败";
+          return;
+        }
+        window.location.href = "/";
+      });
+    </script>
+  </body>
+</html>
