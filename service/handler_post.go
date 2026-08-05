@@ -3,7 +3,10 @@ package service
 import (
 	"TheBook/auth"
 	"TheBook/model"
+	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -133,6 +136,10 @@ func (s *Server) HandlerPostRegister(c *gin.Context) {
 		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 		return
 	}
+	if err := s.persistUsers(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save user"})
+		return
+	}
 
 	token, err := auth.GenerateToken(user.UserID, user.Username, user.Role, user.Nickname, time.Hour*24*7)
 	if err != nil {
@@ -143,6 +150,22 @@ func (s *Server) HandlerPostRegister(c *gin.Context) {
 	c.Set("userID", user.UserID)
 	c.SetCookie("access_token", token, 3600*24, "/", "", false, true)
 	c.JSON(http.StatusOK, gin.H{"message": "Registration successful", "token": token})
+}
+
+func (s *Server) persistUsers() error {
+	bank, ok := s.US.(*model.UserBank)
+	if !ok {
+		return fmt.Errorf("unsupported user service type")
+	}
+	users := make([]*model.User, 0, len(bank.Users))
+	for _, user := range bank.Users {
+		users = append(users, user)
+	}
+	data, err := json.MarshalIndent(users, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(s.UserPath, data, 0644)
 }
 
 func (s *Server) HandlerPostLogout(c *gin.Context) {

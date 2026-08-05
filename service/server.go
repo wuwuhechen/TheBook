@@ -7,11 +7,12 @@ import (
 )
 
 type Server struct {
-	Router *gin.Engine
-	DB     model.QuestionManager
-	PM     map[int]*model.Practice
-	RS     map[int]*model.RandomSession
-	US     UserServer
+	Router   *gin.Engine
+	DB       model.QuestionManager
+	PM       map[int]*model.Practice
+	RS       map[int]*model.RandomSession
+	US       UserServer
+	UserPath string
 }
 
 type UserServer interface {

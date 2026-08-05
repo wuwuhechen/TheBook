@@ -34,10 +34,11 @@ func InitSystem() (*Server, error) {
 	}
 
 	server := &Server{
-		DB: questionServer.DB,
-		PM: questionServer.PM,
-		RS: questionServer.RS,
-		US: userServer,
+		DB:       questionServer.DB,
+		PM:       questionServer.PM,
+		RS:       questionServer.RS,
+		US:       userServer,
+		UserPath: usPath,
 	}
 
 	frontEndPath := fmt.Sprintf("%s/%s", rootPath, cfg.FrontEnd.TemplatePath)
