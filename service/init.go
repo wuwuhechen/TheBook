@@ -1,6 +1,7 @@
 package service
 
 import (
+	"TheBook/auth"
 	"TheBook/config"
 	"TheBook/model"
 	"TheBook/utils"
@@ -26,33 +27,40 @@ func InitSystem() (*Server, error) {
 		return nil, fmt.Errorf("failed to initialize data: %v", err)
 	}
 
-	frontEndPath := fmt.Sprintf("%s/%s", rootPath, cfg.FrontEnd.TemplatePath)
-	r, err := GinInit(frontEndPath, questionServer)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize Gin: %v", err)
-	}
-
 	usPath := fmt.Sprintf("%s/%s", rootPath, cfg.User.UserBankPath)
 	userServer, err := UserInit(usPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize user data: %v", err)
 	}
 
-	return &Server{
-		Router: r,
-		QS:     questionServer,
-		US:     userServer,
-	}, nil
+	server := &Server{
+		DB: questionServer.DB,
+		PM: questionServer.PM,
+		RS: questionServer.RS,
+		US: userServer,
+	}
+
+	frontEndPath := fmt.Sprintf("%s/%s", rootPath, cfg.FrontEnd.TemplatePath)
+	r, err := GinInit(frontEndPath, server)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize Gin: %v", err)
+	}
+
+	auth.InitJWT(cfg.Auth.JWTSecret)
+
+	server.Router = r
+
+	return server, nil
 }
 
 // DataInit 从 path 加载题目，并创建空的练习管理器。
-func DataInit(path string) (*QuestionServer, error) {
+func DataInit(path string) (*Server, error) {
 	db, err := LoadQuestions(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load questions: %v", err)
 	}
 
-	return &QuestionServer{
+	return &Server{
 		DB: db,
 		PM: make(map[int]*model.Practice),
 		RS: make(map[int]*model.RandomSession),
@@ -69,29 +77,35 @@ func UserInit(path string) (*model.UserBank, error) {
 }
 
 // GinInit 创建 Gin 引擎、加载 path 中的模板并注册路由。
-func GinInit(path string, questionServer *QuestionServer) (*gin.Engine, error) {
+func GinInit(path string, Server *Server) (*gin.Engine, error) {
 	r := gin.Default()
 	r.LoadHTMLGlob(path)
 
 	// homeMode 管理首页入口。
 	homeMode := r.Group("/")
-	homeMode.GET("", questionServer.HandlerGetHomePage)
+	homeMode.GET("", Server.HandlerGetHomePage)
+
+	// authMode 管理用户注册、登录和登出。
+	authMode := r.Group("/auth")
+	authMode.POST("/register", Server.HandlerPostRegister)
+	authMode.POST("/login", Server.HandlerPostLogin)
+	authMode.POST("/logout", Server.HandlerPostLogout)
 
 	// questionMode 管理单题浏览、随机出题和即时判题。
-	questionMode := r.Group("/question")
-	questionMode.POST("/random", questionServer.HandlerPostRandomQuestion)
-	questionMode.POST("/request", questionServer.HandlerPostQuestion)
-	questionMode.POST("/check_answer", questionServer.HandlerPostCheckAnswer)
-	questionMode.GET("/random/:session_id", questionServer.HandlerGetRandomQuestionPage)
-	questionMode.GET("", questionServer.HandlerGetQuestionPage)
+	questionMode := r.Group("/question", auth.AuthMiddleware())
+	questionMode.POST("/random", Server.HandlerPostRandomQuestion)
+	questionMode.POST("/request", Server.HandlerPostQuestion)
+	questionMode.POST("/check_answer", Server.HandlerPostCheckAnswer)
+	questionMode.GET("/random/:session_id", Server.HandlerGetRandomQuestionPage)
+	questionMode.GET("", Server.HandlerGetQuestionPage)
 
 	// practiceMode 管理套题初始化、答题、提交和结果查看。
-	practiceMode := r.Group("/practice")
-	practiceMode.POST("/init", questionServer.HandlerPostPracticeInit)
-	practiceMode.POST("/answer", questionServer.HandlerPostSubmitAnswer)
-	practiceMode.POST("/:practice_id/submit", questionServer.HandlerSubmitPractice)
-	practiceMode.GET("/:practice_id", questionServer.HandlerGetPracticePage)
-	practiceMode.GET("/:practice_id/result", questionServer.HandlerGetPracticeResultPage)
+	practiceMode := r.Group("/practice", auth.AuthMiddleware())
+	practiceMode.POST("/init", Server.HandlerPostPracticeInit)
+	practiceMode.POST("/answer", Server.HandlerPostSubmitAnswer)
+	practiceMode.POST("/:practice_id/submit", Server.HandlerSubmitPractice)
+	practiceMode.GET("/:practice_id", Server.HandlerGetPracticePage)
+	practiceMode.GET("/:practice_id/result", Server.HandlerGetPracticeResultPage)
 
 	return r, nil
 }

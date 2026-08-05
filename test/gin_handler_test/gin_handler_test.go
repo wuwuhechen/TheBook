@@ -17,7 +17,7 @@ import (
 
 var (
 	router         *gin.Engine
-	questionServer *service.QuestionServer
+	questionServer *service.Server
 )
 
 func TestMain(M *testing.M) {
@@ -27,7 +27,7 @@ func TestMain(M *testing.M) {
 	}
 
 	router = server.Router
-	questionServer = server.QS
+	questionServer = server
 
 	code := M.Run()
 

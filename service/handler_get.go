@@ -10,7 +10,7 @@ import (
 )
 
 // HandlerGetQuestionPage 渲染独立答题页面。
-func (qs *QuestionServer) HandlerGetQuestionPage(c *gin.Context) {
+func (qs *Server) HandlerGetQuestionPage(c *gin.Context) {
 	questionID, err := strconv.Atoi(c.Query("question_id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid question ID"})
@@ -25,7 +25,7 @@ func (qs *QuestionServer) HandlerGetQuestionPage(c *gin.Context) {
 }
 
 // HandlerGetRandomQuestionPage 渲染随机答题会话中的当前题目并处理前后切换。
-func (qs *QuestionServer) HandlerGetRandomQuestionPage(c *gin.Context) {
+func (qs *Server) HandlerGetRandomQuestionPage(c *gin.Context) {
 	sessionID, err := strconv.Atoi(c.Param("session_id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid random session ID"})
@@ -64,12 +64,12 @@ func (qs *QuestionServer) HandlerGetRandomQuestionPage(c *gin.Context) {
 }
 
 // HandlerGetHomePage 渲染应用首页。
-func (qs *QuestionServer) HandlerGetHomePage(c *gin.Context) {
+func (qs *Server) HandlerGetHomePage(c *gin.Context) {
 	c.HTML(http.StatusOK, "home_page.html", nil)
 }
 
 // HandlerGetPracticePage 渲染当前练习题目并处理题目导航。
-func (qs *QuestionServer) HandlerGetPracticePage(c *gin.Context) {
+func (qs *Server) HandlerGetPracticePage(c *gin.Context) {
 	practiceID, err := strconv.Atoi(c.Param("practice_id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid practice ID"})
@@ -113,7 +113,7 @@ func (qs *QuestionServer) HandlerGetPracticePage(c *gin.Context) {
 }
 
 // HandlerGetPracticeResultPage 渲染已完成练习的答案与解析页面。
-func (qs *QuestionServer) HandlerGetPracticeResultPage(c *gin.Context) {
+func (qs *Server) HandlerGetPracticeResultPage(c *gin.Context) {
 	practiceID, err := strconv.Atoi(c.Param("practice_id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid practice ID"})

@@ -11,6 +11,9 @@ type Config struct {
 
 	// User 字段用于存储用户相关的配置
 	User UserConfig `mapstructure:"user"`
+
+	// Auth 字段用于存储认证相关的配置
+	Auth AuthConfig `mapstructure:"auth"`
 }
 
 type DatabaseConfig struct {
@@ -28,6 +31,15 @@ type UserConfig struct {
 	UserBankPath string `mapstructure:"user_bank_path"`
 }
 
+type AuthConfig struct {
+	// JWTSecret 字段用于存储JWT的密钥
+	JWTSecret string `mapstructure:"jwt_secret"`
+
+	// ExpirationTime 字段用于存储JWT的过期时间（以秒为单位）
+	ExpirationTime int64 `mapstructure:"expiration_time"`
+}
+
 func (c *Config) String() string {
-	return fmt.Sprintf("Database Path: %s\nFront End Template Path: %s\nUser Bank Path: %s\n", c.Database.DatabasePath, c.FrontEnd.TemplatePath, c.User.UserBankPath)
+	return fmt.Sprintf("Database Path: %s\nFront End Template Path: %s\nUser Bank Path: %s\nAuth Config: %+v\n",
+		c.Database.DatabasePath, c.FrontEnd.TemplatePath, c.User.UserBankPath, c.Auth)
 }
