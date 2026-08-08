@@ -9,7 +9,8 @@ import (
 )
 
 type Logger struct {
-	*zap.Logger
+	App      *zap.Logger
+	Business *zap.Logger
 }
 
 // InitLogger 初始化应用日志和错误日志。
@@ -43,6 +44,14 @@ func InitLogger(loggerPath string, development bool) (*Logger, func(), error) {
 		return nil, nil, err
 	}
 
+	businessPath := filepath.Join(filepath.Dir(loggerPath), "business.log")
+	businessWriter, closeBusinessFile, err := zap.Open(businessPath)
+	if err != nil {
+		closeFile()
+		closeErrorFile()
+		return nil, nil, err
+	}
+
 	core := zapcore.NewTee(
 		zapcore.NewCore(
 			encoder,
@@ -63,15 +72,23 @@ func InitLogger(loggerPath string, development bool) (*Logger, func(), error) {
 		),
 	)
 
-	log := &Logger{zap.New(
+	log := zap.New(
 		core,
 		zap.AddCaller(),
 		zap.AddStacktrace(zapcore.ErrorLevel),
-	)}
+	)
 
-	return log, func() {
+	businessLog := zap.New(
+		zapcore.NewCore(encoder, businessWriter, zap.InfoLevel),
+		zap.AddCaller(),
+		zap.AddStacktrace(zapcore.ErrorLevel),
+	)
+
+	return &Logger{App: log, Business: businessLog}, func() {
 		_ = log.Sync()
+		_ = businessLog.Sync()
 		closeFile()
 		closeErrorFile()
+		closeBusinessFile()
 	}, nil
 }

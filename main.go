@@ -4,10 +4,17 @@ import (
 	_ "TheBook/config"
 	"TheBook/logger"
 	"TheBook/service"
+	"TheBook/utils"
+	"fmt"
 )
 
 func main() {
-	log, closeLog, err := logger.InitLogger("logs/app.log", true)
+	rootPath, err := utils.FindProjectRoot()
+	if err != nil {
+		panic(err)
+	}
+
+	log, closeLog, err := logger.InitLogger(fmt.Sprintf("%s/logs/app.log", rootPath), true)
 	if err != nil {
 		panic(err)
 	}

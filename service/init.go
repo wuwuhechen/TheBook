@@ -51,6 +51,7 @@ func InitSystem(log *logger.Logger) (*Server, error) {
 		UserHashPath: userHashPath,
 		RecordPath:   fmt.Sprintf("%s/database/practice_records.json", rootPath),
 		RootPath:     rootPath,
+		Log:          log,
 	}
 
 	frontEndPath := fmt.Sprintf("%s/%s", rootPath, cfg.FrontEnd.TemplatePath)

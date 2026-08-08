@@ -29,11 +29,11 @@ func RequestLogger(log *Logger) gin.HandlerFunc {
 
 		switch {
 		case c.Writer.Status() >= http.StatusInternalServerError:
-			log.Error("http request failed", fileds...)
+			log.App.Error("http request failed", fileds...)
 		case c.Writer.Status() >= http.StatusBadRequest:
-			log.Warn("http request rejected", fileds...)
+			log.App.Warn("http request rejected", fileds...)
 		default:
-			log.Info("http request processed", fileds...)
+			log.App.Info("http request processed", fileds...)
 		}
 	}
 }

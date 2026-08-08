@@ -46,7 +46,7 @@ func TestRequestLoggerWritesErrorLog(t *testing.T) {
 	}
 
 	// 先刷新日志缓冲，再读取文件。
-	_ = log.Sync()
+	_ = log.App.Sync()
 
 	data, err := os.ReadFile(errorLogPath)
 	if err != nil {

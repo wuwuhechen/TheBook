@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // HandlerPostQuestion 校验请求的题目并重定向到题目页面。
@@ -48,9 +49,11 @@ func (s *Server) HandlerPostQuestion(c *gin.Context) {
 
 	err := s.persistQuestionProgress()
 	if err != nil {
+		s.appLog().Error("保存顺序答题进度失败", zap.Uint("user_id", userID), zap.Int("question_id", userReq.QuestionID), zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save question progress"})
 		return
 	}
+	s.businessLog().Info("顺序答题进度已更新", zap.Uint("user_id", userID), zap.Int("question_id", userReq.QuestionID))
 
 	c.Redirect(http.StatusFound, "/question?question_id="+strconv.Itoa(userReq.QuestionID))
 }
@@ -90,9 +93,11 @@ func (s *Server) HandlerPostCurrentQuestion(c *gin.Context) {
 
 	err := s.persistQuestionProgress()
 	if err != nil {
+		s.appLog().Error("恢复顺序答题进度后保存失败", zap.Uint("user_id", userID), zap.Int("question_id", currentQuestionID), zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save question progress"})
 		return
 	}
+	s.businessLog().Info("顺序答题进度已恢复", zap.Uint("user_id", userID), zap.Int("question_id", currentQuestionID))
 
 	c.Redirect(http.StatusFound, "/question?question_id="+strconv.Itoa(currentQuestionID))
 }
@@ -136,6 +141,7 @@ func (s *Server) HandlerPostRandomQuestion(c *gin.Context) {
 		return
 	}
 	s.RS[session.ID] = session
+	s.businessLog().Info("随机练习已创建", zap.Int("session_id", session.ID), zap.Int("question_count", len(session.Questions)))
 	c.Redirect(http.StatusFound, "/question/random/"+strconv.Itoa(session.ID))
 }
 
@@ -151,7 +157,9 @@ func (s *Server) HandlerPostCheckAnswer(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, model.NewResponse(userReq.Choice == question.Answer, question.Explanation))
+	correct := userReq.Choice == question.Answer
+	s.businessLog().Info("单题判题完成", zap.Int("question_id", userReq.QuestionID), zap.Bool("correct", correct))
+	c.JSON(http.StatusOK, model.NewResponse(correct, question.Explanation))
 }
 
 // HandlerPostPracticeInit 创建练习并重定向到第一题。
@@ -171,6 +179,7 @@ func (s *Server) HandlerPostPracticeInit(c *gin.Context) {
 	practice.UserID = userID.(uint)
 	s.PM[practice.ID] = practice
 	practice.Reset()
+	s.businessLog().Info("套题已创建", zap.Uint("user_id", practice.UserID), zap.Int("practice_id", practice.ID), zap.Int("question_count", practice.TotalQuestions))
 	c.Redirect(http.StatusFound, "/practice/"+strconv.Itoa(practice.ID))
 }
 
@@ -187,6 +196,7 @@ func (s *Server) HandlerPostSubmitAnswer(c *gin.Context) {
 		return
 	}
 	practice.Answers[req.QuestionID] = req.Choice
+	s.businessLog().Info("套题答案已保存", zap.Int("practice_id", req.PracticeID), zap.Int("question_id", req.QuestionID))
 	c.JSON(http.StatusOK, gin.H{"message": "saved"})
 }
 
@@ -213,10 +223,12 @@ func (s *Server) HandlerSubmitPractice(c *gin.Context) {
 	}
 	results := practice.CheckPractice(s.DB)
 	if err := s.persistPracticeRecord(practice, results); err != nil {
+		s.appLog().Error("保存套题记录失败", zap.Uint("user_id", practice.UserID), zap.Int("practice_id", practice.ID), zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save practice record"})
 		return
 	}
 	practice.Completed = true
+	s.businessLog().Info("套题已提交", zap.Uint("user_id", practice.UserID), zap.Int("practice_id", practice.ID), zap.Int("correct_count", results.CorrectCount), zap.Int("wrong_count", results.WrongCount))
 	c.JSON(http.StatusOK, results)
 }
 
@@ -266,6 +278,7 @@ func (s *Server) HandlerPostLogin(c *gin.Context) {
 
 	user, err := s.US.LoginUser(req)
 	if err != nil {
+		s.businessLog().Warn("用户登录失败", zap.String("username", req.Username))
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
@@ -277,6 +290,7 @@ func (s *Server) HandlerPostLogin(c *gin.Context) {
 	}
 
 	c.SetCookie("access_token", token, 3600*24, "/", "", false, true)
+	s.businessLog().Info("用户登录成功", zap.Uint("user_id", user.UserID), zap.String("username", user.Username))
 	c.SetCookie("userID", strconv.Itoa(int(user.UserID)), 3600*24, "/", "", false, true)
 	c.Redirect(http.StatusFound, "/")
 }
@@ -291,10 +305,12 @@ func (s *Server) HandlerPostRegister(c *gin.Context) {
 
 	user, err := s.US.RegisterUser(req)
 	if err != nil {
+		s.businessLog().Warn("用户注册失败", zap.String("username", req.Username))
 		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 		return
 	}
 	if err := s.persistUsers(); err != nil {
+		s.appLog().Error("保存用户账户失败", zap.Uint("user_id", user.UserID), zap.String("username", user.Username), zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save user"})
 		return
 	}
@@ -307,6 +323,7 @@ func (s *Server) HandlerPostRegister(c *gin.Context) {
 
 	c.Set("userID", user.UserID)
 	c.SetCookie("access_token", token, 3600*24, "/", "", false, true)
+	s.businessLog().Info("用户注册成功", zap.Uint("user_id", user.UserID), zap.String("username", user.Username))
 	c.JSON(http.StatusOK, gin.H{"message": "Registration successful", "token": token})
 }
 
@@ -385,5 +402,6 @@ func persistUserPasswordHashes(path string, bank *model.UserBank) error {
 
 func (s *Server) HandlerPostLogout(c *gin.Context) {
 	c.SetCookie("access_token", "", -1, "/", "", false, true)
+	s.businessLog().Info("用户已退出登录")
 	c.JSON(http.StatusOK, gin.H{"message": "Logout successful"})
 }
