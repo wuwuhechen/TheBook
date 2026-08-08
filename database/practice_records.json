@@ -58,5 +58,47 @@
         "correct": true
       }
     ]
+  },
+  {
+    "id": 3,
+    "user_id": 2,
+    "practice_id": 203065225,
+    "total_questions": 5,
+    "correct_count": 5,
+    "wrong_count": 0,
+    "start_time": "2026-08-08T22:50:46.2597518+08:00",
+    "submit_time": "2026-08-08T22:51:10.6387124+08:00",
+    "answers": [
+      {
+        "question_id": 7,
+        "answer": 2,
+        "answered": true,
+        "correct": true
+      },
+      {
+        "question_id": 3,
+        "answer": 1,
+        "answered": true,
+        "correct": true
+      },
+      {
+        "question_id": 6,
+        "answer": 1,
+        "answered": true,
+        "correct": true
+      },
+      {
+        "question_id": 2,
+        "answer": 3,
+        "answered": true,
+        "correct": true
+      },
+      {
+        "question_id": 1,
+        "answer": 1,
+        "answered": true,
+        "correct": true
+      }
+    ]
   }
 ]

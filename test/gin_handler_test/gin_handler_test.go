@@ -1,6 +1,7 @@
 package gin_handler_test
 
 import (
+	"TheBook/logger"
 	"TheBook/model"
 	"TheBook/service"
 	"bytes"
@@ -21,7 +22,13 @@ var (
 )
 
 func TestMain(M *testing.M) {
-	server, err := service.InitSystem()
+	log, closeLogger, err := logger.InitLogger("logs_test/app.log", false)
+	if err != nil {
+		panic(err)
+	}
+	defer closeLogger()
+
+	server, err := service.InitSystem(log)
 	if err != nil {
 		panic(err)
 	}

@@ -3,6 +3,7 @@ package service
 import (
 	"TheBook/auth"
 	"TheBook/config"
+	"TheBook/logger"
 	"TheBook/model"
 	"TheBook/utils"
 	"encoding/json"
@@ -13,7 +14,7 @@ import (
 )
 
 // InitSystem 加载配置并初始化题目服务与 Gin 引擎。
-func InitSystem() (*Server, error) {
+func InitSystem(log *logger.Logger) (*Server, error) {
 	rootPath, err := utils.FindProjectRoot()
 
 	cfg, err := config.LoadConfig(fmt.Sprintf("%s/config/config.yaml", rootPath))
@@ -53,7 +54,7 @@ func InitSystem() (*Server, error) {
 	}
 
 	frontEndPath := fmt.Sprintf("%s/%s", rootPath, cfg.FrontEnd.TemplatePath)
-	r, err := GinInit(frontEndPath, server)
+	r, err := GinInit(frontEndPath, server, log)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize Gin: %v", err)
 	}
@@ -125,8 +126,14 @@ func QuestionProgressInit(path string) (map[uint]*model.QuestionProgress, error)
 }
 
 // GinInit 创建 Gin 引擎、加载 path 中的模板并注册路由。
-func GinInit(path string, Server *Server) (*gin.Engine, error) {
-	r := gin.Default()
+func GinInit(path string, Server *Server, log *logger.Logger) (*gin.Engine, error) {
+	r := gin.New()
+
+	r.Use(
+		logger.RequestLogger(log),
+		gin.Recovery(),
+	)
+
 	r.LoadHTMLGlob(path)
 
 	// homeMode 管理首页入口。
