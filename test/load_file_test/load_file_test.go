@@ -50,6 +50,7 @@ func TestUserInit(t *testing.T) {
 
 	userBank, err := service.UserInit(
 		fmt.Sprintf("%s/database/users.json", rootPath),
+		fmt.Sprintf("%s/database/users_hash.json", rootPath),
 	)
 	if err != nil {
 		t.Fatalf("Failed to initialize users: %v", err)

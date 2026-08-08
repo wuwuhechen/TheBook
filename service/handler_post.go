@@ -348,7 +348,39 @@ func (s *Server) persistUsers() error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(s.UserPath, data, 0644)
+	if err := os.WriteFile(s.UserPath, data, 0644); err != nil {
+		return err
+	}
+	return persistUserPasswordHashes(s.UserHashPath, bank)
+}
+
+// persistUserPasswordHashes 将用户资料和对应密码哈希写入独立的哈希账户文件。
+func persistUserPasswordHashes(path string, bank *model.UserBank) error {
+	hashUsers := make([]*model.User, 0, len(bank.Users))
+	for _, user := range bank.Users {
+		passwordHash, exists := bank.PasswordHashes[user.Username]
+		if !exists {
+			return fmt.Errorf("password hash not found for user %s", user.Username)
+		}
+		hashUsers = append(hashUsers, &model.User{
+			UserID:   user.UserID,
+			Username: user.Username,
+			Password: passwordHash,
+			Nickname: user.Nickname,
+			Role:     user.Role,
+		})
+	}
+	sort.Slice(hashUsers, func(i, j int) bool {
+		return hashUsers[i].UserID < hashUsers[j].UserID
+	})
+	data, err := json.MarshalIndent(hashUsers, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return err
+	}
+	return os.WriteFile(path, data, 0644)
 }
 
 func (s *Server) HandlerPostLogout(c *gin.Context) {

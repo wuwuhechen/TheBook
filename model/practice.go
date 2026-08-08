@@ -75,7 +75,7 @@ func (p *Practice) GenerateExam(qm QuestionManager, size int) *Practice {
 	)
 
 	return &Practice{
-		ID:             int(r.Int63n(9000000000000000)),
+		ID:             int(r.Int63n(900000000) + 100000000),
 		TotalQuestions: size,
 		CurrentIndex:   0,
 		PracticeSize:   size,

@@ -28,7 +28,8 @@ func InitSystem() (*Server, error) {
 	}
 
 	usPath := fmt.Sprintf("%s/%s", rootPath, cfg.User.UserBankPath)
-	userServer, err := UserInit(usPath)
+	userHashPath := fmt.Sprintf("%s/%s", rootPath, cfg.User.UserHashPath)
+	userServer, err := UserInit(usPath, userHashPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize user data: %v", err)
 	}
@@ -40,14 +41,15 @@ func InitSystem() (*Server, error) {
 	}
 
 	server := &Server{
-		DB:         questionServer.DB,
-		PM:         questionServer.PM,
-		RS:         questionServer.RS,
-		US:         userServer,
-		QS:         questionProgresses,
-		UserPath:   usPath,
-		RecordPath: fmt.Sprintf("%s/database/practice_records.json", rootPath),
-		RootPath:   rootPath,
+		DB:           questionServer.DB,
+		PM:           questionServer.PM,
+		RS:           questionServer.RS,
+		US:           userServer,
+		QS:           questionProgresses,
+		UserPath:     usPath,
+		UserHashPath: userHashPath,
+		RecordPath:   fmt.Sprintf("%s/database/practice_records.json", rootPath),
+		RootPath:     rootPath,
 	}
 
 	frontEndPath := fmt.Sprintf("%s/%s", rootPath, cfg.FrontEnd.TemplatePath)
@@ -77,10 +79,26 @@ func DataInit(path string) (*Server, error) {
 	}, nil
 }
 
-func UserInit(path string) (*model.UserBank, error) {
+func UserInit(path, hashPath string) (*model.UserBank, error) {
 	userBank, err := LoadUsers(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load user bank: %v", err)
+	}
+
+	if err := LoadUserPasswordHashes(hashPath, userBank); err != nil {
+		if !os.IsNotExist(err) {
+			return nil, fmt.Errorf("failed to load user password hashes: %v", err)
+		}
+		for username, user := range userBank.Users {
+			passwordHash, err := auth.HashPassword(user.Password)
+			if err != nil {
+				return nil, fmt.Errorf("failed to hash user password: %v", err)
+			}
+			userBank.SetPasswordHash(username, passwordHash)
+		}
+		if err := persistUserPasswordHashes(hashPath, userBank); err != nil {
+			return nil, fmt.Errorf("failed to create user password hash file: %v", err)
+		}
 	}
 
 	return userBank, nil
@@ -182,4 +200,27 @@ func LoadUsers(path string) (*model.UserBank, error) {
 	}
 
 	return userBank, nil
+}
+
+// LoadUserPasswordHashes 将哈希账户文件载入到 UserBank 的密码哈希索引中。
+func LoadUserPasswordHashes(path string, userBank *model.UserBank) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	var users []*model.User
+	if err := json.NewDecoder(file).Decode(&users); err != nil {
+		return fmt.Errorf("failed to decode user password hashes: %v", err)
+	}
+	for _, user := range users {
+		if user == nil {
+			continue
+		}
+		if _, exists := userBank.GetUser(user.Username); exists {
+			userBank.SetPasswordHash(user.Username, user.Password)
+		}
+	}
+	return nil
 }

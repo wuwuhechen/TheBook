@@ -6,6 +6,7 @@ front_end:
 
 user:
   user_bank_path: "database/users.json"
+  user_hash_path: "database/users_hash.json"
   question_progress_path: "database/question_progress.json"
 
 auth:

@@ -8,16 +8,17 @@ import (
 )
 
 type Server struct {
-	Router     *gin.Engine
-	DB         model.QuestionManager
-	PM         map[int]*model.Practice
-	RS         map[int]*model.RandomSession
-	US         UserServer
-	QS         map[uint]*model.QuestionProgress
-	UserPath   string
-	RecordPath string
-	RecordMu   sync.Mutex
-	RootPath   string
+	Router       *gin.Engine
+	DB           model.QuestionManager
+	PM           map[int]*model.Practice
+	RS           map[int]*model.RandomSession
+	US           UserServer
+	QS           map[uint]*model.QuestionProgress
+	UserPath     string
+	UserHashPath string
+	RecordPath   string
+	RecordMu     sync.Mutex
+	RootPath     string
 }
 
 type UserServer interface {

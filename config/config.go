@@ -32,6 +32,9 @@ type UserConfig struct {
 
 	// QuestionProgressPath 字段用于存储用户题目进度数据文件的路径
 	QuestionProgressPath string `mapstructure:"question_progress_path"`
+
+	// UserHashPath 字段用于存储用户密码哈希文件的路径。
+	UserHashPath string `mapstructure:"user_hash_path"`
 }
 
 type AuthConfig struct {

@@ -1,0 +1,30 @@
+[
+  {
+    "user_id": 0,
+    "username": "admin",
+    "password": "$2a$10$/mxLlb/gsdBTCWqwd/.ljOsByXcv7sh9REiNBOF/BjNKoNNWZby/.",
+    "nickname": "Administrator",
+    "role": "admin"
+  },
+  {
+    "user_id": 1,
+    "username": "test_user",
+    "password": "$2a$10$vkJsaYtJGYQktFrf0/THNuaXIAtoxeSKurfsPoa7zbfwqktxX/vPG",
+    "nickname": "Test User",
+    "role": "user"
+  },
+  {
+    "user_id": 2,
+    "username": "alice",
+    "password": "$2a$10$eWF9ps43iHx.PLCRAPpp5OMGUAIAaz0CAHUfsNccJqSVHZMhDOMNi",
+    "nickname": "Alice",
+    "role": "user"
+  },
+  {
+    "user_id": 3,
+    "username": "bob",
+    "password": "$2a$10$X37J4yJY.zBKap.hfnVhLOOq1K8N5QJiH1pgN.EekBIN2T0f70rfy",
+    "nickname": "Bob",
+    "role": "user"
+  }
+]

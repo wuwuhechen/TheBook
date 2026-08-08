@@ -1,6 +1,9 @@
 package model
 
-import "fmt"
+import (
+	"TheBook/auth"
+	"fmt"
+)
 
 type RegisterRequest struct {
 	Username string `json:"username"`
@@ -14,7 +17,8 @@ type LoginRequest struct {
 }
 
 type UserBank struct {
-	Users map[string]*User `json:"users"`
+	Users          map[string]*User  `json:"users"`
+	PasswordHashes map[string]string `json:"-"`
 	// NextID 是下一个可分配的用户编号。
 	// 它在加载已有用户时同步推进，避免每次注册都扫描整个用户表。
 	NextID uint `json:"next_id"`
@@ -22,9 +26,15 @@ type UserBank struct {
 
 func NewUserBank() *UserBank {
 	return &UserBank{
-		Users:  make(map[string]*User),
-		NextID: 0,
+		Users:          make(map[string]*User),
+		PasswordHashes: make(map[string]string),
+		NextID:         0,
 	}
+}
+
+// SetPasswordHash 保存用户对应的 bcrypt 密码哈希。
+func (ub *UserBank) SetPasswordHash(username, passwordHash string) {
+	ub.PasswordHashes[username] = passwordHash
 }
 
 func (ub *UserBank) AddUser(user *User) {
@@ -53,7 +63,12 @@ func (ub *UserBank) RegisterUser(req RegisterRequest) (*User, error) {
 		Password: req.Password,
 		Nickname: req.Nickname,
 	}
+	passwordHash, err := auth.HashPassword(req.Password)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash password: %v", err)
+	}
 	ub.AddUser(user)
+	ub.SetPasswordHash(user.Username, passwordHash)
 	return user, nil
 }
 
@@ -62,8 +77,11 @@ func (ub *UserBank) LoginUser(req LoginRequest) (*User, error) {
 	if !exists {
 		return nil, fmt.Errorf("user not found")
 	}
-	if user.Password != req.Password {
+
+	passwordHash, exists := ub.PasswordHashes[req.Username]
+	if !exists || !auth.VerifyPassword(passwordHash, req.Password) {
 		return nil, fmt.Errorf("incorrect password")
 	}
+
 	return user, nil
 }
