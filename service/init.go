@@ -21,8 +21,8 @@ func InitSystem() (*Server, error) {
 		return nil, fmt.Errorf("failed to find project root: %v", err)
 	}
 
-	qsPath := fmt.Sprintf("%s/%s", rootPath, cfg.Database.DatabasePath)
-	questionServer, err := DataInit(qsPath)
+	dbPath := fmt.Sprintf("%s/%s", rootPath, cfg.Database.DatabasePath)
+	questionServer, err := DataInit(dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize data: %v", err)
 	}
@@ -33,12 +33,21 @@ func InitSystem() (*Server, error) {
 		return nil, fmt.Errorf("failed to initialize user data: %v", err)
 	}
 
+	qsPath := fmt.Sprintf("%s/%s", rootPath, cfg.User.QuestionProgressPath)
+	questionProgresses, err := QuestionProgressInit(qsPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize question progresses: %v", err)
+	}
+
 	server := &Server{
-		DB:       questionServer.DB,
-		PM:       questionServer.PM,
-		RS:       questionServer.RS,
-		US:       userServer,
-		UserPath: usPath,
+		DB:         questionServer.DB,
+		PM:         questionServer.PM,
+		RS:         questionServer.RS,
+		US:         userServer,
+		QS:         questionProgresses,
+		UserPath:   usPath,
+		RecordPath: fmt.Sprintf("%s/database/practice_records.json", rootPath),
+		RootPath:   rootPath,
 	}
 
 	frontEndPath := fmt.Sprintf("%s/%s", rootPath, cfg.FrontEnd.TemplatePath)
@@ -77,6 +86,26 @@ func UserInit(path string) (*model.UserBank, error) {
 	return userBank, nil
 }
 
+func QuestionProgressInit(path string) (map[uint]*model.QuestionProgress, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open question progress file: %v", err)
+	}
+	defer file.Close()
+
+	var progresses []*model.QuestionProgress
+	if err := json.NewDecoder(file).Decode(&progresses); err != nil {
+		return nil, fmt.Errorf("failed to decode question progresses: %v", err)
+	}
+
+	progressMap := make(map[uint]*model.QuestionProgress)
+	for _, progress := range progresses {
+		progressMap[progress.UserID] = progress
+	}
+
+	return progressMap, nil
+}
+
 // GinInit 创建 Gin 引擎、加载 path 中的模板并注册路由。
 func GinInit(path string, Server *Server) (*gin.Engine, error) {
 	r := gin.Default()
@@ -96,6 +125,7 @@ func GinInit(path string, Server *Server) (*gin.Engine, error) {
 
 	// questionMode 管理单题浏览、随机出题和即时判题。
 	questionMode := r.Group("/question", auth.AuthMiddleware())
+	questionMode.POST("/current", Server.HandlerPostCurrentQuestion)
 	questionMode.POST("/random", Server.HandlerPostRandomQuestion)
 	questionMode.POST("/request", Server.HandlerPostQuestion)
 	questionMode.POST("/check_answer", Server.HandlerPostCheckAnswer)

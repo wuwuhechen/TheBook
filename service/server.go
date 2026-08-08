@@ -2,17 +2,22 @@ package service
 
 import (
 	"TheBook/model"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Server struct {
-	Router   *gin.Engine
-	DB       model.QuestionManager
-	PM       map[int]*model.Practice
-	RS       map[int]*model.RandomSession
-	US       UserServer
-	UserPath string
+	Router     *gin.Engine
+	DB         model.QuestionManager
+	PM         map[int]*model.Practice
+	RS         map[int]*model.RandomSession
+	US         UserServer
+	QS         map[uint]*model.QuestionProgress
+	UserPath   string
+	RecordPath string
+	RecordMu   sync.Mutex
+	RootPath   string
 }
 
 type UserServer interface {

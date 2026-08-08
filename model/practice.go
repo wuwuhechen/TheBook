@@ -11,6 +11,8 @@ type Practice struct {
 	// 套题ID
 	ID int `json:"id"`
 
+	UserID uint `json:"user_id"`
+
 	// 题库总题数
 	TotalQuestions int `json:"total_questions"`
 

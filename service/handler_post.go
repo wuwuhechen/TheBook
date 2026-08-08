@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
+	"sort"
 	"strconv"
 	"time"
 
@@ -24,7 +26,106 @@ func (s *Server) HandlerPostQuestion(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
+
+	userIDValue, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+	userID := userIDValue.(uint)
+
+	userProgress, exists := s.QS[userID]
+	if !exists {
+		s.QS[userID] = &model.QuestionProgress{
+			UserID:            userID,
+			CurrentQuestionID: userReq.QuestionID,
+			UpdatedAt:         time.Now(),
+		}
+	} else {
+		userProgress.CurrentQuestionID = userReq.QuestionID
+		userProgress.UpdatedAt = time.Now()
+	}
+
+	err := s.persistQuestionProgress()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save question progress"})
+		return
+	}
+
 	c.Redirect(http.StatusFound, "/question?question_id="+strconv.Itoa(userReq.QuestionID))
+}
+
+func (s *Server) HandlerPostCurrentQuestion(c *gin.Context) {
+	userIDValue, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+	userID := userIDValue.(uint)
+
+	userProgress, exists := s.QS[userID]
+	if !exists {
+		userProgress = &model.QuestionProgress{UserID: userID}
+		s.QS[userID] = userProgress
+	}
+
+	currentQuestionID := userProgress.CurrentQuestionID
+	if currentQuestionID == 0 {
+		var ok bool
+		currentQuestionID, ok = s.firstQuestionID()
+		if !ok {
+			c.JSON(http.StatusNotFound, gin.H{"error": "No questions available"})
+			return
+		}
+	} else if _, err := s.DB.GetQuestion(currentQuestionID); err != nil {
+		var ok bool
+		currentQuestionID, ok = s.firstQuestionID()
+		if !ok {
+			c.JSON(http.StatusNotFound, gin.H{"error": "No questions available"})
+			return
+		}
+	}
+	userProgress.CurrentQuestionID = currentQuestionID
+	userProgress.UpdatedAt = time.Now()
+
+	err := s.persistQuestionProgress()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save question progress"})
+		return
+	}
+
+	c.Redirect(http.StatusFound, "/question?question_id="+strconv.Itoa(currentQuestionID))
+}
+
+// firstQuestionID 返回题库中编号最小的有效题目 ID。
+func (s *Server) firstQuestionID() (int, bool) {
+	questions := s.DB.GetAllQuestionsSorted()
+	if len(questions) == 0 {
+		return 0, false
+	}
+	return questions[0].ID, true
+}
+
+func (s *Server) persistQuestionProgress() error {
+	s.RecordMu.Lock()
+	defer s.RecordMu.Unlock()
+
+	progresses := make([]*model.QuestionProgress, 0, len(s.QS))
+	for _, progress := range s.QS {
+		progresses = append(progresses, progress)
+	}
+
+	data, err := json.MarshalIndent(progresses, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	path := s.RootPath + "/database/question_progress.json"
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return err
+	}
+
+	return os.WriteFile(path, data, 0644)
 }
 
 // HandlerPostRandomQuestion 重定向到随机选择的题目。
@@ -62,6 +163,12 @@ func (s *Server) HandlerPostPracticeInit(c *gin.Context) {
 	}
 
 	practice := (&model.Practice{}).NewPractice().GenerateExam(s.DB, userReq.PracticeSize)
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+	practice.UserID = userID.(uint)
 	s.PM[practice.ID] = practice
 	practice.Reset()
 	c.Redirect(http.StatusFound, "/practice/"+strconv.Itoa(practice.ID))
@@ -95,9 +202,59 @@ func (s *Server) HandlerSubmitPractice(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Practice not found"})
 		return
 	}
+	userIDValue, exists := c.Get("userID")
+	if !exists || practice.UserID != userIDValue.(uint) {
+		c.JSON(http.StatusForbidden, gin.H{"error": "No permission to submit this practice"})
+		return
+	}
+	if practice.Completed {
+		c.JSON(http.StatusConflict, gin.H{"error": "Practice already submitted"})
+		return
+	}
 	results := practice.CheckPractice(s.DB)
+	if err := s.persistPracticeRecord(practice, results); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save practice record"})
+		return
+	}
 	practice.Completed = true
 	c.JSON(http.StatusOK, results)
+}
+
+func (s *Server) persistPracticeRecord(practice *model.Practice, results *model.PracticeResponse) error {
+	s.RecordMu.Lock()
+	defer s.RecordMu.Unlock()
+	path := s.RecordPath
+	if path == "" {
+		path = "database/practice_records.json"
+	}
+	var records []model.PracticeRecord
+	if data, err := os.ReadFile(path); err == nil && len(data) > 0 {
+		if err := json.Unmarshal(data, &records); err != nil {
+			return err
+		}
+	} else if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	answers := make([]model.AnswerRecord, 0, len(practice.Questions))
+	correct := make(map[int]bool)
+	for _, id := range practice.Questions {
+		q, err := s.DB.GetQuestion(id)
+		if err != nil {
+			continue
+		}
+		answer, answered := practice.Answers[id]
+		correct[id] = answered && answer == q.Answer
+		answers = append(answers, model.AnswerRecord{QuestionID: id, Answer: answer, Answered: answered, Correct: correct[id]})
+	}
+	records = append(records, model.PracticeRecord{ID: len(records) + 1, UserID: practice.UserID, PracticeID: practice.ID, TotalQuestions: results.Total, CorrectCount: results.CorrectCount, WrongCount: results.WrongCount, StartTime: practice.StartTime, SubmitTime: time.Now(), Answers: answers})
+	data, err := json.MarshalIndent(records, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return err
+	}
+	return os.WriteFile(path, data, 0644)
 }
 
 func (s *Server) HandlerPostLogin(c *gin.Context) {
@@ -120,6 +277,7 @@ func (s *Server) HandlerPostLogin(c *gin.Context) {
 	}
 
 	c.SetCookie("access_token", token, 3600*24, "/", "", false, true)
+	c.SetCookie("userID", strconv.Itoa(int(user.UserID)), 3600*24, "/", "", false, true)
 	c.Redirect(http.StatusFound, "/")
 }
 
@@ -157,9 +315,34 @@ func (s *Server) persistUsers() error {
 	if !ok {
 		return fmt.Errorf("unsupported user service type")
 	}
-	users := make([]*model.User, 0, len(bank.Users))
-	for _, user := range bank.Users {
+
+	usersByName := make(map[string]*model.User)
+	if data, err := os.ReadFile(s.UserPath); err == nil && len(data) > 0 {
+		var existingUsers []*model.User
+		if err := json.Unmarshal(data, &existingUsers); err != nil {
+			return err
+		}
+		for _, user := range existingUsers {
+			if user != nil {
+				usersByName[user.Username] = user
+			}
+		}
+	} else if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	for username, user := range bank.Users {
+		usersByName[username] = user
+	}
+	users := make([]*model.User, 0, len(usersByName))
+	for _, user := range usersByName {
 		users = append(users, user)
+	}
+	sort.Slice(users, func(i, j int) bool {
+		return users[i].UserID < users[j].UserID
+	})
+	for _, user := range usersByName {
+		bank.AddUser(user)
 	}
 	data, err := json.MarshalIndent(users, "", "  ")
 	if err != nil {

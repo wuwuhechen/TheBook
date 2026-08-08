@@ -6,6 +6,7 @@ front_end:
 
 user:
   user_bank_path: "database/users.json"
+  question_progress_path: "database/question_progress.json"
 
 auth:
  jwt_secret: "your_jwt_secret_key"

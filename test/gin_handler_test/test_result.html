@@ -3,126 +3,39 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>答题</title>
-
-    <style>
-      #result {
-        margin-top: 20px;
-        font-size: 18px;
-        font-weight: bold;
-      }
-
-      #explanation {
-        margin-top: 10px;
-        padding: 10px;
-        border: 1px solid #ccc;
-        display: none;
-      }
-    </style>
+    <title>登录</title>
   </head>
-
   <body>
-    <h1>题号: 1, 类别: Go语言</h1>
-
-    <p>题目：Go语言中，下面哪个关键字用于声明一个新的goroutine？</p>
-
-    <p>
-      选项：<br />
-      A. thread <br />
-      B. go <br />
-      C. async <br />
-      D. spawn <br />
-    </p>
-
-    <p>答题进度: 1/10</p>
-
-    
-    <input type="hidden" id="explanation" value="Go语言通过 go 关键字启动新的goroutine，例如 go func(){ }。" />
-
-    
-    <input type="hidden" id="question_id" value="1" />
-
-    <form id="answerForm">
-      <label for="choice"> 选择答案： </label>
-
-      <select name="choice" id="choice">
-        <option value="0">A</option>
-
-        <option value="1">B</option>
-
-        <option value="2">C</option>
-
-        <option value="3">D</option>
-      </select>
-
-      <button type="submit">提交答案</button>
+    <h1>登录</h1>
+    <form id="loginForm">
+      <p><label>用户名 <input id="username" required /></label></p>
+      <p><label>密码 <input id="password" type="password" required /></label></p>
+      <button type="submit">登录</button>
     </form>
-
-    
-
-    
-    <form id="nextQuestionForm" action="/question/request" method="POST">
-      
-      <input type="hidden" name="question_id" value="2" />
-      
-
-      <button type="submit">下一题</button>
-    </form>
-    
-
-    
-    <div id="result"></div>
-
-    
-    <div id="showExplanation"></div>
-
+    <p id="message"></p>
+    <p>还没有账号？<a href="/auth/register">去注册</a></p>
     <script>
-      const form = document.getElementById("answerForm");
+      const loginMessage = new URLSearchParams(window.location.search).get("message");
+      if (loginMessage) {
+        document.getElementById("message").textContent = loginMessage;
+      }
 
-      form.addEventListener("submit", async function (event) {
-        console.log("提交答案事件触发");
-
+      document.getElementById("loginForm").addEventListener("submit", async (event) => {
         event.preventDefault();
-
-        const choice = document.getElementById("choice").value;
-
-        const question_id = document.getElementById("question_id").value;
-
-        const data = {
-          user_id: "test_user",
-          question_id: Number(question_id),
-          choice: Number(choice),
-        };
-
-        const response = await fetch("/question/check_answer", {
+        const response = await fetch("/auth/login", {
           method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-          },
-
-          body: JSON.stringify(data),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: document.getElementById("username").value,
+            password: document.getElementById("password").value
+          })
         });
-
-        const result = await response.json();
-
-        const resultDiv = document.getElementById("result");
-
-        const explanationDiv = document.getElementById("showExplanation");
-
-        if (result.correct) {
-          resultDiv.innerHTML = "✅ 回答正确";
-
-          resultDiv.style.color = "green";
-        } else {
-          resultDiv.innerHTML = "❌ 回答错误";
-
-          resultDiv.style.color = "red";
+        if (response.redirected) {
+          window.location.href = response.url;
+          return;
         }
-
-        explanationDiv.style.display = "block";
-
-        explanationDiv.innerHTML = "<h3>解析：</h3>" + result.explanation;
+        const result = await response.json();
+        document.getElementById("message").textContent = result.error || "登录失败";
       });
     </script>
   </body>

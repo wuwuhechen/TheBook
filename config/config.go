@@ -29,6 +29,9 @@ type FrontEndConfig struct {
 type UserConfig struct {
 	// UserBankPath 字段用于存储用户数据文件的路径
 	UserBankPath string `mapstructure:"user_bank_path"`
+
+	// QuestionProgressPath 字段用于存储用户题目进度数据文件的路径
+	QuestionProgressPath string `mapstructure:"question_progress_path"`
 }
 
 type AuthConfig struct {
