@@ -2,7 +2,7 @@ database:
   database_path: "database/data.json"
 
 front_end:
-  template_path: "front_end/*"
+  template_path: "front_end/*.html"
 
 user:
   user_bank_path: "database/users.json"

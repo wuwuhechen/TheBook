@@ -135,6 +135,7 @@ func GinInit(path string, Server *Server, log *logger.Logger) (*gin.Engine, erro
 		gin.Recovery(),
 	)
 
+	r.Static("/static", "front_end/static")
 	r.LoadHTMLGlob(path)
 
 	// homeMode 管理首页入口。
