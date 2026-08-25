@@ -1,4 +1,4 @@
-package model
+package structs
 
 // QuestionResponse 描述单题答案是否正确及其解析。
 type QuestionResponse struct {

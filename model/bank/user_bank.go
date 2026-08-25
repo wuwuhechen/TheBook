@@ -1,20 +1,10 @@
-package model
+package bank
 
 import (
 	"TheBook/auth"
+	"TheBook/model/manager"
 	"fmt"
 )
-
-type RegisterRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Nickname string `json:"nickname"`
-}
-
-type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
 
 type UserBank struct {
 	Users          map[string]*User  `json:"users"`
@@ -23,6 +13,8 @@ type UserBank struct {
 	// 它在加载已有用户时同步推进，避免每次注册都扫描整个用户表。
 	NextID uint `json:"next_id"`
 }
+
+var _ manager.UserManager = (*UserBank)(nil)
 
 func NewUserBank() *UserBank {
 	return &UserBank{

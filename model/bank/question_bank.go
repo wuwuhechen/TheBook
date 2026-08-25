@@ -1,4 +1,4 @@
-package model
+package bank
 
 import (
 	"fmt"

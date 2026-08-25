@@ -1,6 +1,7 @@
-package model
+package bank
 
 import (
+	"TheBook/model/manager"
 	"errors"
 	"sync"
 )
@@ -11,7 +12,7 @@ type RandomSessionBank struct {
 	mu sync.RWMutex
 }
 
-var _ RandomSessionManager = (*RandomSessionBank)(nil)
+var _ manager.RandomSessionManager = (*RandomSessionBank)(nil)
 
 func NewRandomSessionBank() *RandomSessionBank {
 	return &RandomSessionBank{

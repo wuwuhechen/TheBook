@@ -1,6 +1,7 @@
-package model
+package bank
 
 import (
+	"TheBook/model/manager"
 	"TheBook/utils"
 	"encoding/json"
 	"os"
@@ -14,7 +15,7 @@ type QuestionProgressBank struct {
 	mu sync.RWMutex
 }
 
-var _ QuestionProgressManager = (*QuestionProgressBank)(nil)
+var _ manager.QuestionProgressManager = (*QuestionProgressBank)(nil)
 
 func NewQuestionProgressBank() *QuestionProgressBank {
 	return &QuestionProgressBank{

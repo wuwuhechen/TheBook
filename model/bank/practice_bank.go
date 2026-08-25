@@ -1,6 +1,8 @@
-package model
+package bank
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type PracticeBank struct {
 	practices map[int]*Practice
