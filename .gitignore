@@ -5,3 +5,4 @@ test/gin_handler_test/logs_test
 temp
 database/practice_records.json
 database/question_progress.json
+launch.json

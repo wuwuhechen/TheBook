@@ -26,5 +26,12 @@
     "password": "Bob123!",
     "nickname": "Bob",
     "role": "user"
+  },
+  {
+    "user_id": 4,
+    "username": "charlie",
+    "password": "Charlie123!",
+    "nickname": "Charlie",
+    "role": "user"
   }
 ]
