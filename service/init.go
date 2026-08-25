@@ -5,7 +5,6 @@ import (
 	"TheBook/config"
 	"TheBook/logger"
 	"TheBook/model"
-	"TheBook/sqlite"
 	"TheBook/utils"
 	"encoding/json"
 	"fmt"
@@ -23,8 +22,7 @@ func InitSystem(log *logger.Logger) (*Server, error) {
 		return nil, fmt.Errorf("failed to find project root: %v", err)
 	}
 
-	// dbPath := fmt.Sprintf("%s/%s", rootPath, cfg.Database.DatabasePath)
-	dbPath := fmt.Sprintf("%s/%s", rootPath, cfg.Sqlite.SqliteDBPath)
+	dbPath := fmt.Sprintf("%s/%s", rootPath, cfg.Database.DatabasePath)
 	questionServer, err := DataInit(dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize data: %v", err)
@@ -71,9 +69,7 @@ func InitSystem(log *logger.Logger) (*Server, error) {
 
 // DataInit 从 path 加载题目，并创建空的练习管理器。
 func DataInit(path string) (*Server, error) {
-	// db, err := LoadQuestions(path)
-	db, err := LoadSqliteDB(path)
-
+	db, err := LoadQuestions(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load questions: %v", err)
 	}
@@ -83,14 +79,6 @@ func DataInit(path string) (*Server, error) {
 		PM: model.NewPracticeBank(),
 		RS: model.NewRandomSessionBank(),
 	}, nil
-}
-
-func LoadSqliteDB(path string) (*model.SQLiteQuestionBank, error) {
-	db, err := sqlite.OpenDatabase(path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open SQLite database: %v", err)
-	}
-	return model.NewSQLiteQuestionBank(db), nil
 }
 
 func UserInit(path, hashPath string) (*model.UserBank, error) {

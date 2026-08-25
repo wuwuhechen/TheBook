@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func OpenDatabase(path string) (*gorm.DB, error) {
+func openDatabase(path string) (*gorm.DB, error) {
 	db, err := gorm.Open(
 		sqlite.Open(path),
 		&gorm.Config{},
@@ -16,7 +16,7 @@ func OpenDatabase(path string) (*gorm.DB, error) {
 	return db, nil
 }
 
-func CreateDatabase(db *gorm.DB, models []any) error {
+func createDatabase(db *gorm.DB, models []any) error {
 	for _, model := range models {
 		err := db.AutoMigrate(model)
 		if err != nil {

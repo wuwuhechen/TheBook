@@ -14,8 +14,6 @@ type Config struct {
 
 	// Auth 字段用于存储认证相关的配置
 	Auth AuthConfig `mapstructure:"auth"`
-
-	Sqlite SQLConfig `mapstructure:"sqlite"`
 }
 
 type DatabaseConfig struct {
@@ -45,11 +43,6 @@ type AuthConfig struct {
 
 	// ExpirationTime 字段用于存储JWT的过期时间（以秒为单位）
 	ExpirationTime int64 `mapstructure:"expiration_time"`
-}
-
-type SQLConfig struct {
-	// SqliteDBPath 字段用于存储SQLite数据库文件的路径
-	SqliteDBPath string `mapstructure:"sqlite_db_path"`
 }
 
 func (c *Config) String() string {

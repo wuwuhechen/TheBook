@@ -11,12 +11,12 @@ func Migrate() {
 		panic(err)
 	}
 
-	db, err := OpenDatabase(fmt.Sprintf("%s/database/test.db", root))
+	db, err := openDatabase(fmt.Sprintf("%s/database/test.db", root))
 	if err != nil {
 		panic(err)
 	}
 
-	err = CreateDatabase(db, []any{
+	err = createDatabase(db, []any{
 		&Question{},
 		&User{},
 		&PracticeRecord{},
@@ -27,7 +27,7 @@ func Migrate() {
 		panic("failed to create database")
 	}
 
-	err = MigrateDatabase(db, fmt.Sprintf("%s/database/", root))
+	err = migrateDatabase(db, fmt.Sprintf("%s/database/", root))
 	if err != nil {
 		panic("failed to migrate database" + err.Error())
 	}
