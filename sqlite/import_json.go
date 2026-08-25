@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func readUsers(path string) ([]User, error) {
+func ReadUsers(path string) ([]User, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func readUsers(path string) ([]User, error) {
 	return users, nil
 }
 
-func readQuestions(path string) ([]Question, error) {
+func ReadQuestions(path string) ([]Question, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -56,8 +56,8 @@ func readQuestions(path string) ([]Question, error) {
 	return questions, nil
 }
 
-// readPracticeRecords 读取旧 practice_records.json 的套题记录。
-func readPracticeRecords(path string) ([]model.PracticeRecord, error) {
+// ReadPracticeRecords 读取旧 practice_records.json 的套题记录。
+func ReadPracticeRecords(path string) ([]model.PracticeRecord, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func readPracticeRecords(path string) ([]model.PracticeRecord, error) {
 	return records, nil
 }
 
-func readQuestionProgress(path string) ([]QuestionProgress, error) {
+func ReadQuestionProgress(path string) ([]QuestionProgress, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -88,10 +88,10 @@ func readQuestionProgress(path string) ([]QuestionProgress, error) {
 	return progresses, nil
 }
 
-func migrateDatabase(db *gorm.DB, dataPath string) error {
+func MigrateDatabase(db *gorm.DB, dataPath string) error {
 	fmt.Println("Migrating data from JSON files to SQLite database...")
 
-	questions, err := readQuestions(dataPath + "/data.json")
+	questions, err := ReadQuestions(dataPath + "/data.json")
 	fmt.Println("Read questions:", len(questions))
 	if err != nil {
 		return err
@@ -100,7 +100,7 @@ func migrateDatabase(db *gorm.DB, dataPath string) error {
 		return err
 	}
 
-	users, err := readUsers(dataPath + "/users.json")
+	users, err := ReadUsers(dataPath + "/users.json")
 	fmt.Println("Read users:", len(users))
 	if err != nil {
 		return err
@@ -109,7 +109,7 @@ func migrateDatabase(db *gorm.DB, dataPath string) error {
 		return err
 	}
 
-	practiceRecords, err := readPracticeRecords(dataPath + "/practice_records.json")
+	practiceRecords, err := ReadPracticeRecords(dataPath + "/practice_records.json")
 	fmt.Println("Read practice records:", len(practiceRecords))
 	if err != nil {
 		return err
@@ -118,7 +118,7 @@ func migrateDatabase(db *gorm.DB, dataPath string) error {
 		return err
 	}
 
-	progresses, err := readQuestionProgress(dataPath + "/question_progress.json")
+	progresses, err := ReadQuestionProgress(dataPath + "/question_progress.json")
 	fmt.Println("Read question progresses:", len(progresses))
 	if err != nil {
 		return err
