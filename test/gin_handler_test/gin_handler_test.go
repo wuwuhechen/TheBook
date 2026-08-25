@@ -685,8 +685,9 @@ func TestHandlerGetRandomQuestionPage(t *testing.T) {
 		ID:        sessionID,
 		Questions: questionIDs[:2],
 	}
-	questionServer.RS[sessionID] = session
-	t.Cleanup(func() { delete(questionServer.RS, sessionID) })
+	questionServer.RS.Create(session)
+
+	t.Cleanup(func() { questionServer.RS.Delete(sessionID) })
 
 	req, err := newAuthenticatedRequest("GET", "/question/random/10005", nil)
 	if err != nil {

@@ -35,19 +35,22 @@ func (s *Server) HandlerPostQuestion(c *gin.Context) {
 	}
 	userID := userIDValue.(uint)
 
-	userProgress, exists := s.QS[userID]
-	if !exists {
-		s.QS[userID] = &model.QuestionProgress{
-			UserID:            userID,
-			CurrentQuestionID: userReq.QuestionID,
-			UpdatedAt:         time.Now(),
-		}
-	} else {
-		userProgress.CurrentQuestionID = userReq.QuestionID
-		userProgress.UpdatedAt = time.Now()
+	userProgress, err := s.QS.FindByUserID(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve question progress"})
+		return
 	}
 
-	err := s.persistQuestionProgress()
+	userProgress.CurrentQuestionID = userReq.QuestionID
+	userProgress.UpdatedAt = time.Now()
+
+	err = s.QS.Upsert(userProgress)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update question progress"})
+		return
+	}
+
+	err = s.QS.Persist()
 	if err != nil {
 		s.appLog().Error("保存顺序答题进度失败", zap.Uint("user_id", userID), zap.Int("question_id", userReq.QuestionID), zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save question progress"})
@@ -66,10 +69,10 @@ func (s *Server) HandlerPostCurrentQuestion(c *gin.Context) {
 	}
 	userID := userIDValue.(uint)
 
-	userProgress, exists := s.QS[userID]
-	if !exists {
-		userProgress = &model.QuestionProgress{UserID: userID}
-		s.QS[userID] = userProgress
+	userProgress, err := s.QS.FindByUserID(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve question progress"})
+		return
 	}
 
 	currentQuestionID := userProgress.CurrentQuestionID
@@ -91,7 +94,13 @@ func (s *Server) HandlerPostCurrentQuestion(c *gin.Context) {
 	userProgress.CurrentQuestionID = currentQuestionID
 	userProgress.UpdatedAt = time.Now()
 
-	err := s.persistQuestionProgress()
+	err = s.QS.Upsert(userProgress)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update question progress"})
+		return
+	}
+
+	err = s.QS.Persist()
 	if err != nil {
 		s.appLog().Error("恢复顺序答题进度后保存失败", zap.Uint("user_id", userID), zap.Int("question_id", currentQuestionID), zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save question progress"})
@@ -111,7 +120,8 @@ func (s *Server) firstQuestionID() (int, bool) {
 	return questions[0].ID, true
 }
 
-func (s *Server) persistQuestionProgress() error {
+/*
+	func (s *Server) persistQuestionProgress() error {
 	s.RecordMu.Lock()
 	defer s.RecordMu.Unlock()
 
@@ -131,7 +141,7 @@ func (s *Server) persistQuestionProgress() error {
 	}
 
 	return os.WriteFile(path, data, 0644)
-}
+} */
 
 // HandlerPostRandomQuestion 重定向到随机选择的题目。
 func (s *Server) HandlerPostRandomQuestion(c *gin.Context) {
@@ -140,7 +150,7 @@ func (s *Server) HandlerPostRandomQuestion(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "No questions available"})
 		return
 	}
-	s.RS[session.ID] = session
+	s.RS.Create(session)
 	s.businessLog().Info("随机练习已创建", zap.Int("session_id", session.ID), zap.Int("question_count", len(session.Questions)))
 	c.Redirect(http.StatusFound, "/question/random/"+strconv.Itoa(session.ID))
 }

@@ -14,9 +14,9 @@ type Server struct {
 
 	DB model.QuestionManager
 	PM model.PracticeManager
-	RS map[int]*model.RandomSession
+	RS model.RandomSessionManager
 	UM model.UserManager
-	QS map[uint]*model.QuestionProgress
+	QS model.QuestionProgressManager
 
 	UserPath     string
 	UserHashPath string

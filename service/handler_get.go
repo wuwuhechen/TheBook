@@ -42,9 +42,9 @@ func (qs *Server) HandlerGetRandomQuestionPage(c *gin.Context) {
 		return
 	}
 
-	session := qs.RS[sessionID]
-	if session == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Random session not found"})
+	session, err := qs.RS.FindByID(sessionID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve random session"})
 		return
 	}
 

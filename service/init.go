@@ -77,7 +77,7 @@ func DataInit(path string) (*Server, error) {
 	return &Server{
 		DB: db,
 		PM: model.NewPracticeBank(),
-		RS: make(map[int]*model.RandomSession),
+		RS: model.NewRandomSessionBank(),
 	}, nil
 }
 
@@ -106,7 +106,7 @@ func UserInit(path, hashPath string) (*model.UserBank, error) {
 	return userBank, nil
 }
 
-func QuestionProgressInit(path string) (map[uint]*model.QuestionProgress, error) {
+func QuestionProgressInit(path string) (model.QuestionProgressManager, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open question progress file: %v", err)
@@ -118,9 +118,9 @@ func QuestionProgressInit(path string) (map[uint]*model.QuestionProgress, error)
 		return nil, fmt.Errorf("failed to decode question progresses: %v", err)
 	}
 
-	progressMap := make(map[uint]*model.QuestionProgress)
+	progressMap := model.NewQuestionProgressBank()
 	for _, progress := range progresses {
-		progressMap[progress.UserID] = progress
+		progressMap.Upsert(progress)
 	}
 
 	return progressMap, nil
