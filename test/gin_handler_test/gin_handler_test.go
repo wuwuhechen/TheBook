@@ -1,11 +1,13 @@
 package gin_handler_test
 
 import (
+	"TheBook/auth"
 	"TheBook/logger"
 	"TheBook/model"
 	"TheBook/service"
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -19,6 +21,7 @@ import (
 var (
 	router         *gin.Engine
 	questionServer *service.Server
+	authToken      string
 )
 
 func TestMain(M *testing.M) {
@@ -35,10 +38,23 @@ func TestMain(M *testing.M) {
 
 	router = server.Router
 	questionServer = server
+	authToken, err = auth.GenerateToken(1, "test_user", "user", "Test User", time.Hour)
+	if err != nil {
+		panic(err)
+	}
 
 	code := M.Run()
 
 	os.Exit(code)
+}
+
+func newAuthenticatedRequest(method, target string, body io.Reader) (*http.Request, error) {
+	req, err := http.NewRequest(method, target, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+authToken)
+	return req, nil
 }
 
 func TestInitQuestionPage(t *testing.T) {
@@ -49,7 +65,7 @@ func TestInitQuestionPage(t *testing.T) {
 		t.Fatalf("Failed to marshal request: %v", err)
 	}
 
-	req, err := http.NewRequest("POST", "/question/request", bytes.NewBuffer(jsonData))
+	req, err := newAuthenticatedRequest("POST", "/question/request", bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
 
 	req.Header.Set(
@@ -72,7 +88,7 @@ func TestInitQuestionPage(t *testing.T) {
 		w.Header().Get("Location")
 
 	// 第二次请求 GET
-	req2, _ := http.NewRequest(
+	req2, _ := newAuthenticatedRequest(
 		"GET",
 		location,
 		nil,
@@ -117,7 +133,7 @@ func TestPostQuestionRedirect(t *testing.T) {
 		)
 	}
 
-	req, err := http.NewRequest(
+	req, err := newAuthenticatedRequest(
 		"POST",
 		"/question/request",
 		bytes.NewBuffer(jsonData),
@@ -173,7 +189,7 @@ func TestPostQuestionRedirect(t *testing.T) {
 
 func TestGetQuestionPage(t *testing.T) {
 
-	req, err := http.NewRequest(
+	req, err := newAuthenticatedRequest(
 		"GET",
 		"/question?question_id=1",
 		nil,
@@ -242,7 +258,7 @@ func TestCheckAnswerTrue(t *testing.T) {
 		t.Fatalf("Failed to marshal request: %v", err)
 	}
 
-	req, err := http.NewRequest("POST", "/question/check_answer", bytes.NewBuffer(jsonData))
+	req, err := newAuthenticatedRequest("POST", "/question/check_answer", bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
 
 	w := httptest.NewRecorder()
@@ -280,7 +296,7 @@ func TestCheckAnswerFalse(t *testing.T) {
 		t.Fatalf("Failed to marshal request: %v", err)
 	}
 
-	req, err := http.NewRequest("POST", "/question/check_answer", bytes.NewBuffer(jsonData))
+	req, err := newAuthenticatedRequest("POST", "/question/check_answer", bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
 
 	w := httptest.NewRecorder()
@@ -307,7 +323,7 @@ func TestCheckAnswerFalse(t *testing.T) {
 }
 
 func TestGetHomePage(t *testing.T) {
-	req, err := http.NewRequest("GET", "/", nil)
+	req, err := newAuthenticatedRequest("GET", "/", nil)
 	if err != nil {
 		t.Fatalf("Failed to create request: %v", err)
 	}
@@ -334,7 +350,7 @@ func TestGetHomePage(t *testing.T) {
 }
 
 func TestPostRandomQuestion(t *testing.T) {
-	req, err := http.NewRequest("POST", "/question/random", nil)
+	req, err := newAuthenticatedRequest("POST", "/question/random", nil)
 	if err != nil {
 		t.Fatalf("Failed to create request: %v", err)
 	}
@@ -361,7 +377,7 @@ func TestGenerateExam(t *testing.T) {
 		t.Fatalf("Failed to marshal request: %v", err)
 	}
 
-	req, err := http.NewRequest("POST", "/practice/init", bytes.NewBuffer(jsonData))
+	req, err := newAuthenticatedRequest("POST", "/practice/init", bytes.NewBuffer(jsonData))
 	if err != nil {
 		t.Fatalf("Failed to create request: %v", err)
 	}
@@ -388,8 +404,14 @@ func TestHandlerPostSubmitAnswer(t *testing.T) {
 	practice := (&model.Practice{}).NewPractice()
 	practice.ID = practiceID
 	practice.Questions = []int{question.ID}
-	questionServer.PM[practiceID] = practice
-	t.Cleanup(func() { delete(questionServer.PM, practiceID) })
+	if err := questionServer.PM.Create(practice); err != nil {
+		t.Fatalf("Failed to create practice: %v", err)
+	}
+	t.Cleanup(func() {
+		if err := questionServer.PM.Delete(practice); err != nil {
+			t.Errorf("Failed to delete practice: %v", err)
+		}
+	})
 
 	t.Run("success", func(t *testing.T) {
 		request := model.Request{
@@ -402,7 +424,7 @@ func TestHandlerPostSubmitAnswer(t *testing.T) {
 			t.Fatalf("Failed to marshal request: %v", err)
 		}
 
-		req, err := http.NewRequest("POST", "/practice/answer", bytes.NewBuffer(jsonData))
+		req, err := newAuthenticatedRequest("POST", "/practice/answer", bytes.NewBuffer(jsonData))
 		if err != nil {
 			t.Fatalf("Failed to create request: %v", err)
 		}
@@ -431,7 +453,7 @@ func TestHandlerPostSubmitAnswer(t *testing.T) {
 
 	t.Run("practice not found", func(t *testing.T) {
 		body := `{"practice_id":999999,"question_id":1,"choice":1}`
-		req, err := http.NewRequest("POST", "/practice/answer", strings.NewReader(body))
+		req, err := newAuthenticatedRequest("POST", "/practice/answer", strings.NewReader(body))
 		if err != nil {
 			t.Fatalf("Failed to create request: %v", err)
 		}
@@ -446,7 +468,7 @@ func TestHandlerPostSubmitAnswer(t *testing.T) {
 	})
 
 	t.Run("invalid JSON", func(t *testing.T) {
-		req, err := http.NewRequest("POST", "/practice/answer", strings.NewReader(`{"practice_id":`))
+		req, err := newAuthenticatedRequest("POST", "/practice/answer", strings.NewReader(`{"practice_id":`))
 		if err != nil {
 			t.Fatalf("Failed to create request: %v", err)
 		}
@@ -471,12 +493,22 @@ func TestHandlerSubmitPractice(t *testing.T) {
 
 		practice := (&model.Practice{}).NewPractice()
 		practice.ID = practiceID
+		practice.UserID = 1
 		practice.Questions = []int{question.ID}
 		practice.Answers[question.ID] = question.Answer
-		questionServer.PM[practiceID] = practice
-		t.Cleanup(func() { delete(questionServer.PM, practiceID) })
+		if err := questionServer.PM.Create(practice); err != nil {
+			t.Fatalf("Failed to create practice: %v", err)
+		}
+		originalRecordPath := questionServer.RecordPath
+		questionServer.RecordPath = t.TempDir() + "/practice_records.json"
+		t.Cleanup(func() {
+			questionServer.RecordPath = originalRecordPath
+			if err := questionServer.PM.Delete(practice); err != nil {
+				t.Errorf("Failed to delete practice: %v", err)
+			}
+		})
 
-		req, err := http.NewRequest("POST", "/practice/10002/submit", nil)
+		req, err := newAuthenticatedRequest("POST", "/practice/10002/submit", nil)
 		if err != nil {
 			t.Fatalf("Failed to create request: %v", err)
 		}
@@ -504,7 +536,7 @@ func TestHandlerSubmitPractice(t *testing.T) {
 	})
 
 	t.Run("invalid practice ID", func(t *testing.T) {
-		req, err := http.NewRequest("POST", "/practice/not-a-number/submit", nil)
+		req, err := newAuthenticatedRequest("POST", "/practice/not-a-number/submit", nil)
 		if err != nil {
 			t.Fatalf("Failed to create request: %v", err)
 		}
@@ -518,7 +550,7 @@ func TestHandlerSubmitPractice(t *testing.T) {
 	})
 
 	t.Run("practice not found", func(t *testing.T) {
-		req, err := http.NewRequest("POST", "/practice/999999/submit", nil)
+		req, err := newAuthenticatedRequest("POST", "/practice/999999/submit", nil)
 		if err != nil {
 			t.Fatalf("Failed to create request: %v", err)
 		}
@@ -545,10 +577,16 @@ func TestHandlerGetPracticePage(t *testing.T) {
 	practice.TotalQuestions = questionServer.DB.GetTotalCount()
 	practice.Duration = 5 * time.Minute
 	practice.StartTime = time.Now()
-	questionServer.PM[practiceID] = practice
-	t.Cleanup(func() { delete(questionServer.PM, practiceID) })
+	if err := questionServer.PM.Create(practice); err != nil {
+		t.Fatalf("Failed to create practice: %v", err)
+	}
+	t.Cleanup(func() {
+		if err := questionServer.PM.Delete(practice); err != nil {
+			t.Errorf("Failed to delete practice: %v", err)
+		}
+	})
 
-	req, err := http.NewRequest("GET", "/practice/10003", nil)
+	req, err := newAuthenticatedRequest("GET", "/practice/10003", nil)
 	if err != nil {
 		t.Fatalf("Failed to create request: %v", err)
 	}
@@ -591,10 +629,16 @@ func TestHandlerGetPracticeResultPage(t *testing.T) {
 	practice.Questions = []int{question.ID}
 	practice.Answers[question.ID] = question.Answer
 	practice.Completed = true
-	questionServer.PM[practiceID] = practice
-	t.Cleanup(func() { delete(questionServer.PM, practiceID) })
+	if err := questionServer.PM.Create(practice); err != nil {
+		t.Fatalf("Failed to create practice: %v", err)
+	}
+	t.Cleanup(func() {
+		if err := questionServer.PM.Delete(practice); err != nil {
+			t.Errorf("Failed to delete practice: %v", err)
+		}
+	})
 
-	req, err := http.NewRequest("GET", "/practice/10004/result", nil)
+	req, err := newAuthenticatedRequest("GET", "/practice/10004/result", nil)
 	if err != nil {
 		t.Fatalf("Failed to create request: %v", err)
 	}
@@ -644,7 +688,7 @@ func TestHandlerGetRandomQuestionPage(t *testing.T) {
 	questionServer.RS[sessionID] = session
 	t.Cleanup(func() { delete(questionServer.RS, sessionID) })
 
-	req, err := http.NewRequest("GET", "/question/random/10005", nil)
+	req, err := newAuthenticatedRequest("GET", "/question/random/10005", nil)
 	if err != nil {
 		t.Fatalf("Failed to create request: %v", err)
 	}
@@ -657,7 +701,7 @@ func TestHandlerGetRandomQuestionPage(t *testing.T) {
 		t.Fatalf("Expected initial index 0, got %d", session.CurrentIndex)
 	}
 
-	req, err = http.NewRequest("GET", "/question/random/10005?direction=next", nil)
+	req, err = newAuthenticatedRequest("GET", "/question/random/10005?direction=next", nil)
 	if err != nil {
 		t.Fatalf("Failed to create next request: %v", err)
 	}

@@ -85,8 +85,8 @@ func (qs *Server) HandlerGetPracticePage(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid practice ID"})
 		return
 	}
-	practice := qs.PM[practiceID]
-	if practice == nil {
+	practice, err := qs.PM.FindByID(practiceID)
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Practice not found"})
 		return
 	}
@@ -129,8 +129,8 @@ func (qs *Server) HandlerGetPracticeResultPage(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid practice ID"})
 		return
 	}
-	practice := qs.PM[practiceID]
-	if practice == nil {
+	practice, err := qs.PM.FindByID(practiceID)
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Practice not found"})
 		return
 	}

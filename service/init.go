@@ -45,7 +45,7 @@ func InitSystem(log *logger.Logger) (*Server, error) {
 		DB:           questionServer.DB,
 		PM:           questionServer.PM,
 		RS:           questionServer.RS,
-		US:           userServer,
+		UM:           userServer,
 		QS:           questionProgresses,
 		UserPath:     usPath,
 		UserHashPath: userHashPath,
@@ -76,7 +76,7 @@ func DataInit(path string) (*Server, error) {
 
 	return &Server{
 		DB: db,
-		PM: make(map[int]*model.Practice),
+		PM: model.NewPracticeBank(),
 		RS: make(map[int]*model.RandomSession),
 	}, nil
 }

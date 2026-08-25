@@ -177,7 +177,10 @@ func (s *Server) HandlerPostPracticeInit(c *gin.Context) {
 		return
 	}
 	practice.UserID = userID.(uint)
-	s.PM[practice.ID] = practice
+	if err := s.PM.Create(practice); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	practice.Reset()
 	s.businessLog().Info("套题已创建", zap.Uint("user_id", practice.UserID), zap.Int("practice_id", practice.ID), zap.Int("question_count", practice.TotalQuestions))
 	c.Redirect(http.StatusFound, "/practice/"+strconv.Itoa(practice.ID))
@@ -190,7 +193,11 @@ func (s *Server) HandlerPostSubmitAnswer(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	practice := s.PM[req.PracticeID]
+	practice, err := s.PM.FindByID(req.PracticeID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
 	if practice == nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Practice not found"})
 		return
@@ -207,8 +214,8 @@ func (s *Server) HandlerSubmitPractice(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid practice ID"})
 		return
 	}
-	practice := s.PM[practiceID]
-	if practice == nil {
+	practice, err := s.PM.FindByID(practiceID)
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Practice not found"})
 		return
 	}
@@ -276,7 +283,7 @@ func (s *Server) HandlerPostLogin(c *gin.Context) {
 		return
 	}
 
-	user, err := s.US.LoginUser(req)
+	user, err := s.UM.LoginUser(req)
 	if err != nil {
 		s.businessLog().Warn("用户登录失败", zap.String("username", req.Username))
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
@@ -303,7 +310,7 @@ func (s *Server) HandlerPostRegister(c *gin.Context) {
 		return
 	}
 
-	user, err := s.US.RegisterUser(req)
+	user, err := s.UM.RegisterUser(req)
 	if err != nil {
 		s.businessLog().Warn("用户注册失败", zap.String("username", req.Username))
 		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
@@ -328,7 +335,7 @@ func (s *Server) HandlerPostRegister(c *gin.Context) {
 }
 
 func (s *Server) persistUsers() error {
-	bank, ok := s.US.(*model.UserBank)
+	bank, ok := s.UM.(*model.UserBank)
 	if !ok {
 		return fmt.Errorf("unsupported user service type")
 	}
