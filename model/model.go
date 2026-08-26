@@ -39,6 +39,7 @@ type QuestionProgressBank = bank.QuestionProgressBank
 type RandomSessionBank = bank.RandomSessionBank
 type UserBank = bank.UserBank
 type UserBankSQLite = bank.UserBankSQLite
+type QuestionProgressBankSQLite = bank.QuestionProgressBankSQLite
 
 // 构造函数
 var NewResponse = structs.NewResponse
@@ -52,3 +53,4 @@ var NewQuestionProgressBank = bank.NewQuestionProgressBank
 var NewRandomSessionBank = bank.NewRandomSessionBank
 var NewUserBank = bank.NewUserBank
 var NewUserBankSQLite = bank.NewUserBankSQLite
+var NewQuestionProgressBankSQLite = bank.NewQuestionProgressBankSQLite

@@ -46,11 +46,11 @@ func InitSystem(log *logger.Logger) (*Server, error) {
 	// 	return nil, fmt.Errorf("failed to initialize user data: %v", err)
 	// }
 
-	qsPath := fmt.Sprintf("%s/%s", rootPath, cfg.User.QuestionProgressPath)
-	questionProgresses, err := QuestionProgressInit(qsPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize question progresses: %v", err)
-	}
+	// qsPath := fmt.Sprintf("%s/%s", rootPath, cfg.User.QuestionProgressPath)
+	// questionProgresses, err := QuestionProgressInit(qsPath)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to initialize question progresses: %v", err)
+	// }
 
 	// server := &Server{
 	// 	DB:           questionServer.DB,
@@ -70,7 +70,7 @@ func InitSystem(log *logger.Logger) (*Server, error) {
 		PM:           SQLServer.PM,
 		RS:           SQLServer.RS,
 		UM:           SQLServer.UM,
-		QS:           questionProgresses,
+		QS:           SQLServer.QS,
 		UserPath:     usPath,
 		UserHashPath: userHashPath,
 		RecordPath:   fmt.Sprintf("%s/database/practice_records.json", rootPath),
@@ -97,6 +97,7 @@ func DataInitSQLite(db *gorm.DB) *Server {
 		PM: model.NewPracticeBank(),
 		RS: model.NewRandomSessionBank(),
 		UM: model.NewUserBankSQLite(db),
+		QS: model.NewQuestionProgressBankSQLite(db),
 	}
 }
 

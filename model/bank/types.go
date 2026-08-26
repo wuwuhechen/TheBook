@@ -2,8 +2,7 @@ package bank
 
 import "TheBook/model/structs"
 
-// Local aliases keep bank implementations readable while preserving the
-// dependency direction from banks to domain structures.
+// 使用别名可以保持银行实现的可读性，同时保留从银行到领域结构的依赖方向。
 type Question = structs.Question
 type Practice = structs.Practice
 type QuestionProgress = structs.QuestionProgress
