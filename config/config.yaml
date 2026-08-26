@@ -12,3 +12,7 @@ user:
 auth:
  jwt_secret: "your_jwt_secret_key"
  expiration_time: 604800
+
+sqlite:
+  database_path: "database/test.db"
+

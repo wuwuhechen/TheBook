@@ -312,7 +312,6 @@ func (s *Server) HandlerPostLogin(c *gin.Context) {
 	c.Redirect(http.StatusFound, "/")
 }
 
-// TODO：重定向到登录界面
 func (s *Server) HandlerPostRegister(c *gin.Context) {
 	var req model.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -345,6 +344,10 @@ func (s *Server) HandlerPostRegister(c *gin.Context) {
 }
 
 func (s *Server) persistUsers() error {
+	if _, ok := s.UM.(*model.UserBankSQLite); ok {
+		return nil
+	}
+
 	bank, ok := s.UM.(*model.UserBank)
 	if !ok {
 		return fmt.Errorf("unsupported user service type")

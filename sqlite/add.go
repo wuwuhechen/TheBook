@@ -7,35 +7,44 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func addUser(db *gorm.DB, user *User) error {
-	return db.Clauses(clause.OnConflict{UpdateAll: true}).Create(user).Error
+func AddUser(db *gorm.DB, user *User) error {
+	// UserID 0 is a valid legacy user ID. GORM normally treats a zero-valued
+	// primary key as auto-generated and omits it from INSERT, so select the
+	// columns explicitly to preserve IDs during JSON-to-SQLite migration.
+	return db.Model(&User{}).Clauses(clause.OnConflict{UpdateAll: true}).Create(map[string]any{
+		"user_id":  user.UserID,
+		"username": user.Username,
+		"password": user.Password,
+		"nickname": user.Nickname,
+		"role":     user.Role,
+	}).Error
 }
 
-func addUsers(db *gorm.DB, users []User) error {
+func AddUsers(db *gorm.DB, users []User) error {
 	for i := range users {
-		if err := addUser(db, &users[i]); err != nil {
+		if err := AddUser(db, &users[i]); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func addQuestion(db *gorm.DB, question *Question) error {
+func AddQuestion(db *gorm.DB, question *Question) error {
 	return db.Clauses(clause.OnConflict{UpdateAll: true}).Create(question).Error
 }
 
-func addQuestions(db *gorm.DB, questions []Question) error {
+func AddQuestions(db *gorm.DB, questions []Question) error {
 	for i := range questions {
-		if err := addQuestion(db, &questions[i]); err != nil {
+		if err := AddQuestion(db, &questions[i]); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// addPracticeRecord 将 JSON 中的一次套题记录及其逐题答案写入 SQLite。
+// AddPracticeRecord 将 JSON 中的一次套题记录及其逐题答案写入 SQLite。
 // 父记录和答案记录在同一事务中创建，避免只写入其中一部分数据。
-func addPracticeRecord(db *gorm.DB, source *model.PracticeRecord) error {
+func AddPracticeRecord(db *gorm.DB, source *model.PracticeRecord) error {
 	return db.Transaction(func(tx *gorm.DB) error {
 		record := PracticeRecord{
 			ID:             uint(source.ID),
@@ -76,26 +85,26 @@ func addPracticeRecord(db *gorm.DB, source *model.PracticeRecord) error {
 	})
 }
 
-// addPracticeRecords 批量迁移 JSON 中的套题记录。
-func addPracticeRecords(db *gorm.DB, records []model.PracticeRecord) error {
+// AddPracticeRecords 批量迁移 JSON 中的套题记录。
+func AddPracticeRecords(db *gorm.DB, records []model.PracticeRecord) error {
 	for i := range records {
-		if err := addPracticeRecord(db, &records[i]); err != nil {
+		if err := AddPracticeRecord(db, &records[i]); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func addQuestionProgress(db *gorm.DB, progress *QuestionProgress) error {
+func AddQuestionProgress(db *gorm.DB, progress *QuestionProgress) error {
 	return db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "user_id"}},
 		UpdateAll: true,
 	}).Create(progress).Error
 }
 
-func addQuestionProgresses(db *gorm.DB, progresses []QuestionProgress) error {
+func AddQuestionProgresses(db *gorm.DB, progresses []QuestionProgress) error {
 	for i := range progresses {
-		if err := addQuestionProgress(db, &progresses[i]); err != nil {
+		if err := AddQuestionProgress(db, &progresses[i]); err != nil {
 			return err
 		}
 	}

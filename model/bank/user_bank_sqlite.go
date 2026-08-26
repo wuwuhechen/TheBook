@@ -3,7 +3,9 @@ package bank
 import (
 	"TheBook/auth"
 	"TheBook/model/manager"
+	"crypto/subtle"
 	"fmt"
+	"strings"
 	"sync"
 
 	"gorm.io/gorm"
@@ -52,9 +54,10 @@ func (ub *UserBankSQLite) RegisterUser(req RegisterRequest) (*User, error) {
 		Username: req.Username,
 		Password: passwordHash,
 		Nickname: req.Nickname,
+		Role:     "user",
 	}
 
-	err = ub.AddUser(user)
+	err = ub.db.Create(user).Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to add user: %v", err)
 	}
@@ -76,20 +79,38 @@ func (ub *UserBankSQLite) GetUser(username string) (*User, bool) {
 }
 
 func (ub *UserBankSQLite) LoginUser(req LoginRequest) (*User, error) {
-	ub.mu.Lock()
-	defer ub.mu.Unlock()
-
 	user, exist := ub.GetUser(req.Username)
 	if !exist {
 		return nil, fmt.Errorf("user not found")
 	}
 
-	passwordHash := user.Password
-	if !auth.VerifyPassword(passwordHash, req.Password) {
-		return nil, fmt.Errorf("incorrect password")
+	if isBcryptHash(user.Password) {
+		if !auth.VerifyPassword(user.Password, req.Password) {
+			return nil, fmt.Errorf("incorrect password")
+		}
+		return user, nil
 	}
 
+	// 处理非 bcrypt 密码哈希的情况
+	if subtle.ConstantTimeCompare([]byte(user.Password), []byte(req.Password)) != 1 {
+		return nil, fmt.Errorf("incorrect password")
+	}
+	passwordHash, err := auth.HashPassword(req.Password)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upgrade password: %v", err)
+	}
+	if err := ub.SetPasswordHash(user.Username, passwordHash); err != nil {
+		return nil, fmt.Errorf("failed to upgrade password: %v", err)
+	}
+	user.Password = passwordHash
+
 	return user, nil
+}
+
+func isBcryptHash(password string) bool {
+	return strings.HasPrefix(password, "$2a$") ||
+		strings.HasPrefix(password, "$2b$") ||
+		strings.HasPrefix(password, "$2y$")
 }
 
 func (ub *UserBankSQLite) DeleteUser(username string) error {

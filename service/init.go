@@ -5,12 +5,14 @@ import (
 	"TheBook/config"
 	"TheBook/logger"
 	"TheBook/model"
+	"TheBook/sqlite"
 	"TheBook/utils"
 	"encoding/json"
 	"fmt"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // InitSystem 加载配置并初始化题目服务与 Gin 引擎。
@@ -22,18 +24,27 @@ func InitSystem(log *logger.Logger) (*Server, error) {
 		return nil, fmt.Errorf("failed to find project root: %v", err)
 	}
 
-	dbPath := fmt.Sprintf("%s/%s", rootPath, cfg.Database.DatabasePath)
-	questionServer, err := DataInit(dbPath)
+	sqlitePath := fmt.Sprintf("%s/%s", rootPath, cfg.SQLite.DatabasePath)
+	db, err := sqlite.OpenDatabase(sqlitePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize data: %v", err)
+		return nil, fmt.Errorf("failed to open database: %v", err)
 	}
+
+	SQLServer := DataInitSQLite(db)
+
+	// dbPath := fmt.Sprintf("%s/%s", rootPath, cfg.Database.DatabasePath)
+
+	// questionServer, err := DataInit(dbPath)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to initialize data: %v", err)
+	// }
 
 	usPath := fmt.Sprintf("%s/%s", rootPath, cfg.User.UserBankPath)
 	userHashPath := fmt.Sprintf("%s/%s", rootPath, cfg.User.UserHashPath)
-	userServer, err := UserInit(usPath, userHashPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize user data: %v", err)
-	}
+	// userServer, err := UserInit(usPath, userHashPath)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to initialize user data: %v", err)
+	// }
 
 	qsPath := fmt.Sprintf("%s/%s", rootPath, cfg.User.QuestionProgressPath)
 	questionProgresses, err := QuestionProgressInit(qsPath)
@@ -41,11 +52,24 @@ func InitSystem(log *logger.Logger) (*Server, error) {
 		return nil, fmt.Errorf("failed to initialize question progresses: %v", err)
 	}
 
+	// server := &Server{
+	// 	DB:           questionServer.DB,
+	// 	PM:           questionServer.PM,
+	// 	RS:           questionServer.RS,
+	// 	UM:           userServer,
+	// 	QS:           questionProgresses,
+	// 	UserPath:     usPath,
+	// 	UserHashPath: userHashPath,
+	// 	RecordPath:   fmt.Sprintf("%s/database/practice_records.json", rootPath),
+	// 	RootPath:     rootPath,
+	// 	Log:          log,
+	// }
+
 	server := &Server{
-		DB:           questionServer.DB,
-		PM:           questionServer.PM,
-		RS:           questionServer.RS,
-		UM:           userServer,
+		DB:           SQLServer.DB,
+		PM:           SQLServer.PM,
+		RS:           SQLServer.RS,
+		UM:           SQLServer.UM,
 		QS:           questionProgresses,
 		UserPath:     usPath,
 		UserHashPath: userHashPath,
@@ -65,6 +89,15 @@ func InitSystem(log *logger.Logger) (*Server, error) {
 	server.Router = r
 
 	return server, nil
+}
+
+func DataInitSQLite(db *gorm.DB) *Server {
+	return &Server{
+		DB: model.NewSQLiteQuestionBank(db),
+		PM: model.NewPracticeBank(),
+		RS: model.NewRandomSessionBank(),
+		UM: model.NewUserBankSQLite(db),
+	}
 }
 
 // DataInit 从 path 加载题目，并创建空的练习管理器。

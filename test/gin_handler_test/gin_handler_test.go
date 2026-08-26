@@ -7,6 +7,7 @@ import (
 	"TheBook/service"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -716,5 +717,85 @@ func TestHandlerGetRandomQuestionPage(t *testing.T) {
 	}
 	if !strings.Contains(w.Body.String(), `name="direction" value="last"`) {
 		t.Fatal("Response does not contain random-session previous navigation")
+	}
+}
+
+func TestHandlerPostLogin(t *testing.T) {
+	username := fmt.Sprintf("login_test_%d", time.Now().UnixNano())
+	password := "test-password"
+	user, err := questionServer.UM.RegisterUser(model.RegisterRequest{
+		Username: username,
+		Password: password,
+		Nickname: "Login Test",
+	})
+	if err != nil {
+		t.Fatalf("Failed to create login test user: %v", err)
+	}
+	t.Cleanup(func() {
+		if err := questionServer.UM.DeleteUser(user.Username); err != nil {
+			t.Errorf("Failed to delete login test user: %v", err)
+		}
+	})
+
+	payload, err := json.Marshal(model.LoginRequest{
+		Username: username,
+		Password: password,
+	})
+	if err != nil {
+		t.Fatalf("Failed to marshal login request: %v", err)
+	}
+	req, err := http.NewRequest("POST", "/auth/login", bytes.NewReader(payload))
+	if err != nil {
+		t.Fatalf("Failed to create login request: %v", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusFound {
+		t.Fatalf("Expected status code 302, got %d: %s", w.Code, w.Body.String())
+	}
+	if location := w.Header().Get("Location"); location != "/" {
+		t.Fatalf("Expected redirect to /, got %q", location)
+	}
+	if cookie := w.Header().Get("Set-Cookie"); !strings.Contains(cookie, "access_token=") {
+		t.Fatalf("Expected access_token cookie, got %q", cookie)
+	}
+}
+
+func TestHandlerPostRegisterSQLite(t *testing.T) {
+	username := fmt.Sprintf("register_test_%d", time.Now().UnixNano())
+	t.Cleanup(func() {
+		if err := questionServer.UM.DeleteUser(username); err != nil {
+			t.Errorf("Failed to delete registration test user: %v", err)
+		}
+	})
+
+	payload, err := json.Marshal(model.RegisterRequest{
+		Username: username,
+		Password: "Register123!",
+		Nickname: "Register Test",
+	})
+	if err != nil {
+		t.Fatalf("Failed to marshal register request: %v", err)
+	}
+	req, err := http.NewRequest("POST", "/auth/register", bytes.NewReader(payload))
+	if err != nil {
+		t.Fatalf("Failed to create register request: %v", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("Expected status code 200, got %d: %s", w.Code, w.Body.String())
+	}
+	if _, exists := questionServer.UM.GetUser(username); !exists {
+		t.Fatal("Expected registered user to be persisted in SQLite")
+	}
+	if cookie := w.Header().Get("Set-Cookie"); !strings.Contains(cookie, "access_token=") {
+		t.Fatalf("Expected access_token cookie, got %q", cookie)
 	}
 }

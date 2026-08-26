@@ -13,7 +13,7 @@ func TestDataInit(t *testing.T) {
 		t.Fatalf("Failed to find project root: %v", err)
 	}
 
-	qs, err := service.DataInit(fmt.Sprintf("%s/database/thebook.db", rootPath))
+	qs, err := service.DataInit(fmt.Sprintf("%s/database/data.json", rootPath))
 	if err != nil {
 		t.Fatalf("Failed to initialize system: %v", err)
 	}

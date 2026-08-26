@@ -14,6 +14,14 @@ type Config struct {
 
 	// Auth 字段用于存储认证相关的配置
 	Auth AuthConfig `mapstructure:"auth"`
+
+	// SQLite 字段用于存储SQLite相关的配置
+	SQLite SQLiteConfig `mapstructure:"sqlite"`
+}
+
+type SQLiteConfig struct {
+	// DatabasePath 字段用于存储SQLite数据库文件的路径
+	DatabasePath string `mapstructure:"database_path"`
 }
 
 type DatabaseConfig struct {

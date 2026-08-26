@@ -5,18 +5,18 @@ import (
 	"fmt"
 )
 
-func Migrate() {
+func Migrate() error {
 	root, err := utils.FindProjectRoot()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	db, err := openDatabase(fmt.Sprintf("%s/database/test.db", root))
+	db, err := OpenDatabase(fmt.Sprintf("%s/database/thebook.db", root))
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	err = createDatabase(db, []any{
+	err = CreateDatabase(db, []any{
 		&Question{},
 		&User{},
 		&PracticeRecord{},
@@ -24,12 +24,14 @@ func Migrate() {
 		&QuestionProgress{},
 	})
 	if err != nil {
-		panic("failed to create database")
+		return fmt.Errorf("failed to create database: %w", err)
 	}
 
-	err = migrateDatabase(db, fmt.Sprintf("%s/database/", root))
+	err = MigrateDatabase(db, fmt.Sprintf("%s/database/", root))
 	if err != nil {
-		panic("failed to migrate database" + err.Error())
+		return fmt.Errorf("failed to migrate database: %w", err)
 	}
 	fmt.Println("Data migration completed successfully.")
+
+	return nil
 }
