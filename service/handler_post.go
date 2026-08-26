@@ -239,52 +239,85 @@ func (s *Server) HandlerSubmitPractice(c *gin.Context) {
 		return
 	}
 	results := practice.CheckPractice(s.DB)
-	if err := s.persistPracticeRecord(practice, results); err != nil {
+	// if err := s.persistPracticeRecord(practice, results); err != nil {
+	// 	s.appLog().Error("保存套题记录失败", zap.Uint("user_id", practice.UserID), zap.Int("practice_id", practice.ID), zap.Error(err))
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save practice record"})
+	// 	return
+	// }
+
+	record, err := s.convertToPracticeRecord(practice, results)
+	err = s.PM.Persist(record)
+	if err != nil {
 		s.appLog().Error("保存套题记录失败", zap.Uint("user_id", practice.UserID), zap.Int("practice_id", practice.ID), zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save practice record"})
 		return
 	}
+
 	practice.Completed = true
 	s.businessLog().Info("套题已提交", zap.Uint("user_id", practice.UserID), zap.Int("practice_id", practice.ID), zap.Int("correct_count", results.CorrectCount), zap.Int("wrong_count", results.WrongCount))
 	c.JSON(http.StatusOK, results)
 }
 
-func (s *Server) persistPracticeRecord(practice *model.Practice, results *model.PracticeResponse) error {
-	s.RecordMu.Lock()
-	defer s.RecordMu.Unlock()
-	path := s.RecordPath
-	if path == "" {
-		path = "database/practice_records.json"
-	}
-	var records []model.PracticeRecord
-	if data, err := os.ReadFile(path); err == nil && len(data) > 0 {
-		if err := json.Unmarshal(data, &records); err != nil {
-			return err
-		}
-	} else if err != nil && !os.IsNotExist(err) {
-		return err
-	}
+func (s *Server) convertToPracticeRecord(practice *model.Practice, results *model.PracticeResponse) (*model.PracticeRecord, error) {
 	answers := make([]model.AnswerRecord, 0, len(practice.Questions))
-	correct := make(map[int]bool)
 	for _, id := range practice.Questions {
 		q, err := s.DB.GetQuestion(id)
 		if err != nil {
-			continue
+			return nil, err
 		}
 		answer, answered := practice.Answers[id]
-		correct[id] = answered && answer == q.Answer
-		answers = append(answers, model.AnswerRecord{QuestionID: id, Answer: answer, Answered: answered, Correct: correct[id]})
+		correct := answered && answer == q.Answer
+		answers = append(answers, model.AnswerRecord{QuestionID: id, Answer: answer, Answered: answered, Correct: correct})
 	}
-	records = append(records, model.PracticeRecord{ID: len(records) + 1, UserID: practice.UserID, PracticeID: practice.ID, TotalQuestions: results.Total, CorrectCount: results.CorrectCount, WrongCount: results.WrongCount, StartTime: practice.StartTime, SubmitTime: time.Now(), Answers: answers})
-	data, err := json.MarshalIndent(records, "", "  ")
-	if err != nil {
-		return err
-	}
-	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
-		return err
-	}
-	return os.WriteFile(path, data, 0644)
+
+	return &model.PracticeRecord{
+		UserID:         practice.UserID,
+		PracticeID:     practice.ID,
+		TotalQuestions: results.Total,
+		CorrectCount:   results.CorrectCount,
+		WrongCount:     results.WrongCount,
+		StartTime:      practice.StartTime,
+		SubmitTime:     time.Now(),
+		Answers:        answers,
+	}, nil
 }
+
+// func (s *Server) persistPracticeRecord(practice *model.Practice, results *model.PracticeResponse) error {
+// 	s.RecordMu.Lock()
+// 	defer s.RecordMu.Unlock()
+// 	path := s.RecordPath
+// 	if path == "" {
+// 		path = "database/practice_records.json"
+// 	}
+// 	var records []model.PracticeRecord
+// 	if data, err := os.ReadFile(path); err == nil && len(data) > 0 {
+// 		if err := json.Unmarshal(data, &records); err != nil {
+// 			return err
+// 		}
+// 	} else if err != nil && !os.IsNotExist(err) {
+// 		return err
+// 	}
+// 	answers := make([]model.AnswerRecord, 0, len(practice.Questions))
+// 	correct := make(map[int]bool)
+// 	for _, id := range practice.Questions {
+// 		q, err := s.DB.GetQuestion(id)
+// 		if err != nil {
+// 			continue
+// 		}
+// 		answer, answered := practice.Answers[id]
+// 		correct[id] = answered && answer == q.Answer
+// 		answers = append(answers, model.AnswerRecord{QuestionID: id, Answer: answer, Answered: answered, Correct: correct[id]})
+// 	}
+// 	records = append(records, model.PracticeRecord{ID: len(records) + 1, UserID: practice.UserID, PracticeID: practice.ID, TotalQuestions: results.Total, CorrectCount: results.CorrectCount, WrongCount: results.WrongCount, StartTime: practice.StartTime, SubmitTime: time.Now(), Answers: answers})
+// 	data, err := json.MarshalIndent(records, "", "  ")
+// 	if err != nil {
+// 		return err
+// 	}
+// 	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+// 		return err
+// 	}
+// 	return os.WriteFile(path, data, 0644)
+// }
 
 func (s *Server) HandlerPostLogin(c *gin.Context) {
 	var req model.LoginRequest

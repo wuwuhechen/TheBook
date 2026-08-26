@@ -10,5 +10,7 @@ type RandomSession = structs.RandomSession
 type User = structs.User
 type RegisterRequest = structs.RegisterRequest
 type LoginRequest = structs.LoginRequest
+type PracticeResponse = structs.PracticeResponse
+type PracticeRecord = structs.PracticeRecord
 
 var NewQuestionProgress = structs.NewQuestionProgress

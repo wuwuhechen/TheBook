@@ -10,4 +10,6 @@ type PracticeManager interface {
 	Save(practice *structs.Practice) error
 
 	Delete(practice *structs.Practice) error
+
+	Persist(record *structs.PracticeRecord) error
 }

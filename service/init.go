@@ -94,7 +94,7 @@ func InitSystem(log *logger.Logger) (*Server, error) {
 func DataInitSQLite(db *gorm.DB) *Server {
 	return &Server{
 		DB: model.NewSQLiteQuestionBank(db),
-		PM: model.NewPracticeBank(),
+		PM: model.NewPracticeBank(db),
 		RS: model.NewRandomSessionBank(),
 		UM: model.NewUserBankSQLite(db),
 		QS: model.NewQuestionProgressBankSQLite(db),
@@ -102,18 +102,18 @@ func DataInitSQLite(db *gorm.DB) *Server {
 }
 
 // DataInit 从 path 加载题目，并创建空的练习管理器。
-func DataInit(path string) (*Server, error) {
-	db, err := LoadQuestions(path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load questions: %v", err)
-	}
+// func DataInit(path string) (*Server, error) {
+// 	db, err := LoadQuestions(path)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to load questions: %v", err)
+// 	}
 
-	return &Server{
-		DB: db,
-		PM: model.NewPracticeBank(),
-		RS: model.NewRandomSessionBank(),
-	}, nil
-}
+// 	return &Server{
+// 		DB: db,
+// 		PM: model.NewPracticeBank(),
+// 		RS: model.NewRandomSessionBank(),
+// 	}, nil
+// }
 
 func UserInit(path, hashPath string) (*model.UserBank, error) {
 	userBank, err := LoadUsers(path)
