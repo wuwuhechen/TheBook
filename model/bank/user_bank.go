@@ -3,6 +3,7 @@ package bank
 import (
 	"TheBook/auth"
 	"TheBook/model/manager"
+	"errors"
 	"fmt"
 )
 
@@ -29,14 +30,15 @@ func (ub *UserBank) SetPasswordHash(username, passwordHash string) {
 	ub.PasswordHashes[username] = passwordHash
 }
 
-func (ub *UserBank) AddUser(user *User) {
+func (ub *UserBank) AddUser(user *User) error {
 	if user == nil {
-		return
+		return errors.New("user cannot be nil")
 	}
 	ub.Users[user.Username] = user
 	if user.UserID >= ub.NextID {
 		ub.NextID = user.UserID + 1
 	}
+	return nil
 }
 
 func (ub *UserBank) GetUser(username string) (*User, bool) {
@@ -76,4 +78,13 @@ func (ub *UserBank) LoginUser(req LoginRequest) (*User, error) {
 	}
 
 	return user, nil
+}
+
+func (ub *UserBank) DeleteUser(username string) error {
+	if _, exists := ub.Users[username]; !exists {
+		return fmt.Errorf("user not found")
+	}
+	delete(ub.Users, username)
+	delete(ub.PasswordHashes, username)
+	return nil
 }
