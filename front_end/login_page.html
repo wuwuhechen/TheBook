@@ -11,7 +11,10 @@
     <h1>登录</h1>
     <form id="loginForm">
       <p><label>用户名 <input id="username" required /></label></p>
-      <p><label>密码 <input id="password" type="password" required /></label></p>
+      <p>
+        <label>密码 <input id="password" type="password" required /></label>
+        <label><input id="showPassword" type="checkbox" /> 显示密码</label>
+      </p>
       <button type="submit">登录</button>
     </form>
     <p id="message"></p>
@@ -21,6 +24,12 @@
       if (loginMessage) {
         document.getElementById("message").textContent = loginMessage;
       }
+
+      document.getElementById("showPassword").addEventListener("change", (event) => {
+        document.getElementById("password").type = event.target.checked
+          ? "text"
+          : "password";
+      });
 
       document.getElementById("loginForm").addEventListener("submit", async (event) => {
         event.preventDefault();

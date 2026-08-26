@@ -6,6 +6,7 @@ import (
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 type Logger struct {
@@ -32,25 +33,31 @@ func InitLogger(loggerPath string, development bool) (*Logger, func(), error) {
 		encoder = zapcore.NewJSONEncoder(encodeConfig)
 	}
 
-	fileWriter, closeFile, err := zap.Open(loggerPath)
-	if err != nil {
-		return nil, nil, err
-	}
+	// fileWriter, closeFile, err := zap.Open(loggerPath)
+	// if err != nil {
+	// 	return nil, nil, err
+	// }
+
+	fileWriter := newRotatingWriter(loggerPath)
 
 	errorPath := filepath.Join(filepath.Dir(loggerPath), "error.log")
-	errorWriter, closeErrorFile, err := zap.Open(errorPath)
-	if err != nil {
-		closeFile()
-		return nil, nil, err
-	}
+	errorWriter := newRotatingWriter(errorPath)
+
+	// errorWriter, closeErrorFile, err := zap.Open(errorPath)
+	// if err != nil {
+	// 	// closeFile()
+	// 	return nil, nil, err
+	// }
 
 	businessPath := filepath.Join(filepath.Dir(loggerPath), "business.log")
-	businessWriter, closeBusinessFile, err := zap.Open(businessPath)
-	if err != nil {
-		closeFile()
-		closeErrorFile()
-		return nil, nil, err
-	}
+	businessWriter := newRotatingWriter(businessPath)
+
+	// businessWriter, closeBusinessFile, err := zap.Open(businessPath)
+	// if err != nil {
+	// 	// closeFile()
+	// 	// closeErrorFile()
+	// 	return nil, nil, err
+	// }
 
 	core := zapcore.NewTee(
 		zapcore.NewCore(
@@ -87,8 +94,18 @@ func InitLogger(loggerPath string, development bool) (*Logger, func(), error) {
 	return &Logger{App: log, Business: businessLog}, func() {
 		_ = log.Sync()
 		_ = businessLog.Sync()
-		closeFile()
-		closeErrorFile()
-		closeBusinessFile()
+		// closeFile()
+		// closeErrorFile()
+		// closeBusinessFile()
 	}, nil
+}
+
+func newRotatingWriter(path string) zapcore.WriteSyncer {
+	return zapcore.AddSync(&lumberjack.Logger{
+		Filename:   path,
+		MaxSize:    10,   // 单个文件最大 10 MB
+		MaxBackups: 7,    // 最多保留 7 个旧文件
+		MaxAge:     30,   // 最多保留 30 天
+		Compress:   true, // 历史文件使用 gzip 压缩
+	})
 }
