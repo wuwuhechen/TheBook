@@ -1,53 +1,75 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-	<link rel="icon" href="/static/favicon/favicon.ico" type="image/x-icon">
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>登录</title>
-  </head>
-  <body>
-    <p><a href="/">返回首页</a></p>
-    <h1>登录</h1>
-    <form id="loginForm">
-      <p><label>用户名 <input id="username" required /></label></p>
-      <p>
-        <label>密码 <input id="password" type="password" required /></label>
-        <label><input id="showPassword" type="checkbox" /> 显示密码</label>
-      </p>
-      <button type="submit">登录</button>
-    </form>
-    <p id="message"></p>
-    <p>还没有账号？<a href="/auth/register">去注册</a></p>
-    <script>
-      const loginMessage = new URLSearchParams(window.location.search).get("message");
-      if (loginMessage) {
-        document.getElementById("message").textContent = loginMessage;
-      }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 · TheBook</title>
+    <link rel="icon" href="/static/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<main class="site-shell auth-layout">
+    <section class="auth-card">
+        <a class="brand" href="/">
+            <span class="brand-mark">✦</span>
+            <span>TheBook</span>
+        </a>
+        <p class="eyebrow">Welcome Back</p>
+        <h1>登录</h1>
+        <p class="muted">登录后继续你的学习</p>
 
-      document.getElementById("showPassword").addEventListener("change", (event) => {
-        document.getElementById("password").type = event.target.checked
-          ? "text"
-          : "password";
-      });
+        <form id="loginForm">
+            <label class="field" for="username">
+                <span>用户名</span>
+                <input id="username" name="username" type="text" autocomplete="username" required>
+            </label>
+            <label class="field" for="password">
+                <span>密码</span>
+                <input id="password" name="password" type="password" autocomplete="current-password" required>
+            </label>
+            <label class="inline-check" for="showPassword">
+                <input id="showPassword" type="checkbox">
+                <span>显示输入的密码</span>
+            </label>
+            <button class="btn btn-primary" type="submit">登录</button>
+        </form>
+        <p id="message" class="form-message" role="alert"></p>
+        <p class="auth-switch">还没有账户？<a href="/auth/register">立即注册</a></p>
+    </section>
+</main>
 
-      document.getElementById("loginForm").addEventListener("submit", async (event) => {
+<script>
+    const message = document.getElementById('message');
+    const queryMessage = new URLSearchParams(window.location.search).get('message');
+    if (queryMessage) message.textContent = queryMessage;
+
+    document.getElementById('showPassword').addEventListener('change', function () {
+        document.getElementById('password').type = this.checked ? 'text' : 'password';
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async function (event) {
         event.preventDefault();
-        const response = await fetch("/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username: document.getElementById("username").value,
-            password: document.getElementById("password").value
-          })
-        });
-        if (response.redirected) {
-          window.location.href = response.url;
-          return;
+        message.textContent = '';
+        const button = this.querySelector('button[type="submit"]');
+        button.disabled = true;
+
+        try {
+            const response = await fetch('/auth/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    username: document.getElementById('username').value,
+                    password: document.getElementById('password').value
+                })
+            });
+
+            if (!response.ok) throw new Error(await response.text() || '登录失败');
+            window.location.href = response.redirected ? response.url : '/';
+        } catch (error) {
+            message.textContent = error.message;
+            button.disabled = false;
         }
-        const result = await response.json();
-        document.getElementById("message").textContent = result.error || "登录失败";
-      });
-    </script>
-  </body>
+    });
+</script>
+</body>
 </html>

@@ -1,189 +1,156 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-	<link rel="icon" href="/static/favicon/favicon.ico" type="image/x-icon">
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>答题</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>套题练习 · TheBook</title>
+    <link rel="icon" href="/static/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<main class="site-shell">
+    <header class="site-header">
+        <a class="brand" href="/"><span class="brand-mark">✦</span><span>TheBook</span></a>
+        <a class="btn btn-ghost" href="/">返回首页</a>
+    </header>
 
-    <style>
-      #result {
-        margin-top: 20px;
-        font-size: 18px;
-        font-weight: bold;
-      }
+    <section class="question-card">
+        <div class="question-meta">
+            <span class="category-pill">{{.Category}}</span>
+            <span>套题进度 {{.ID}} / {{.TotalQuestions}}</span>
+            <p id="timer">剩余时间 <strong id="countdown">--:--</strong></p>
+        </div>
+        <p class="eyebrow">Practice Mission · {{.ID}}</p>
+        <h1>{{.Question}}</h1>
 
-      #timer { margin: 16px 0; font-size: 20px; font-weight: bold; color: #b42318; }
+        <input type="hidden" id="question_id" value="{{.RealID}}">
+        <input type="hidden" id="practice_id" value="{{.PracticeID}}">
+        <input type="hidden" id="duration" value="{{.Duration}}">
 
-    </style>
-  </head>
+        <form id="answerForm" class="answer-panel">
+            <fieldset class="choice-fieldset">
+                <legend>选择你的答案</legend>
+                <label class="choice-card">
+                    <input type="radio" name="choice" value="0" required>
+                    <span class="choice-letter">A</span><span>{{.OptionA}}</span>
+                </label>
+                <label class="choice-card">
+                    <input type="radio" name="choice" value="1">
+                    <span class="choice-letter">B</span><span>{{.OptionB}}</span>
+                </label>
+                <label class="choice-card">
+                    <input type="radio" name="choice" value="2">
+                    <span class="choice-letter">C</span><span>{{.OptionC}}</span>
+                </label>
+                <label class="choice-card">
+                    <input type="radio" name="choice" value="3">
+                    <span class="choice-letter">D</span><span>{{.OptionD}}</span>
+                </label>
+            </fieldset>
+            <button class="btn btn-secondary" id="saveAnswerButton" type="submit">保存答案</button>
+        </form>
+        <div id="result" role="status"></div>
 
-  <body>
-    <p><a href="/">返回首页</a></p>
-    <h1>题号: {{.ID}}, 类别: {{.Category}}</h1>
+        <div class="practice-actions">
+            <div class="navigation-row">
+                {{if .HasLastID}}
+                <form id="lastQuestionForm" action="/practice/{{.PracticeID}}" method="GET">
+                    <input type="hidden" name="direction" value="last">
+                    <button class="btn btn-ghost" type="submit">← 上一题</button>
+                </form>
+                {{end}}
+                {{if .HasNextID}}
+                <form id="nextQuestionForm" action="/practice/{{.PracticeID}}" method="GET">
+                    <input type="hidden" name="direction" value="next">
+                    <button class="btn btn-ghost" type="submit">下一题 →</button>
+                </form>
+                {{end}}
+            </div>
+            <button class="btn btn-primary" id="submitPracticeButton" type="button">提交整套练习</button>
+        </div>
+        <div id="submitResult" role="status"></div>
+    </section>
+</main>
 
-    <p>题目：{{.Question}}</p>
+<script>
+    const form = document.getElementById('answerForm');
+    const submitButton = document.getElementById('submitPracticeButton');
+    const countdown = document.getElementById('countdown');
+    const submitResult = document.getElementById('submitResult');
+    const resultDiv = document.getElementById('result');
+    const navigationButtons = document.querySelectorAll('#lastQuestionForm button, #nextQuestionForm button');
+    let submitted = false;
+    let timer;
 
-    <p>
-      选项：<br />
-      A. {{.OptionA}} <br />
-      B. {{.OptionB}} <br />
-      C. {{.OptionC}} <br />
-      D. {{.OptionD}} <br />
-    </p>
+    function formatTime(seconds) {
+        return String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0');
+    }
 
-    <p>答题进度: {{.ID}}/{{.TotalQuestions}}</p>
-
-    <!-- 隐藏解析字段 -->
-
-    <!-- 隐藏题目ID -->
-    <input type="hidden" id="question_id" value="{{.RealID}}" />
-    <input type="hidden" id="practice_id" value="{{.PracticeID}}" />
-    <input type="hidden" id="duration" value="{{.Duration}}" />
-    <p id="timer">剩余时间：<span id="countdown">--:--</span></p>
-
-    <form id="answerForm">
-      <label for="choice"> 选择答案： </label>
-
-      <select name="choice" id="choice">
-        <option value="0">A</option>
-
-        <option value="1">B</option>
-
-        <option value="2">C</option>
-
-        <option value="3">D</option>
-      </select>
-
-      <button id="saveAnswerButton" type="submit">提交答案</button>
-    </form>
-
-    {{if .HasLastID}}
-    <form id="lastQuestionForm" action="/practice/{{.PracticeID}}" method="GET">
-      <input type="hidden" name="direction" value="last" />
-
-      <button type="submit">上一题</button>
-    </form>
-    {{end}}
-
-    {{if .HasNextID}}
-    <form id="nextQuestionForm" action="/practice/{{.PracticeID}}" method="GET">
-      <input type="hidden" name="direction" value="next" />
-
-      <button type="submit">下一题</button>
-    </form>
-    {{end}}
-
-    <!-- 显示结果 -->
-    <div id="result"></div>
-
-    <button id="submitPracticeButton" type="button">提交练习</button>
-
-    <div id="submitResult"></div>
-
-    <script>
-      const form = document.getElementById("answerForm");
-      const submitButton = document.getElementById("submitPracticeButton");
-      const countdown = document.getElementById("countdown");
-      const submitResult = document.getElementById("submitResult");
-      const resultDiv = document.getElementById("result");
-      const navigationButtons = document.querySelectorAll(
-        "#lastQuestionForm button, #nextQuestionForm button"
-      );
-      let submitted = false;
-
-      function formatTime(seconds) {
-        return String(Math.floor(seconds / 60)).padStart(2, "0") + ":" +
-          String(seconds % 60).padStart(2, "0");
-      }
-
-      async function submitPractice(autoSubmit) {
+    async function submitPractice() {
         if (submitted) return;
         submitted = true;
         clearInterval(timer);
         submitButton.disabled = true;
-        document.getElementById("saveAnswerButton").disabled = true;
-        navigationButtons.forEach((button) => {
-          button.disabled = true;
-        });
-        const response = await fetch(
-          "/practice/" + Number(document.getElementById("practice_id").value) + "/submit",
-          { method: "POST" }
-        );
-        if (!response.ok) {
-          submitted = false;
-          submitButton.disabled = false;
-          submitResult.textContent = "提交失败，请重试";
-          return;
+        document.getElementById('saveAnswerButton').disabled = true;
+        navigationButtons.forEach(button => button.disabled = true);
+
+        try {
+            const practiceID = document.getElementById('practice_id').value;
+            const response = await fetch('/practice/' + Number(practiceID) + '/submit', {method: 'POST'});
+            if (!response.ok) throw new Error('提交失败，请重试');
+            const result = await response.json();
+            submitResult.innerHTML =
+                '<div class="inline-summary">总题数：' + result.total + ' · 答对：' + result.correct_count + ' · 答错：' + result.wrong_count + '</div>' +
+                '<button id="viewResultButton" class="btn btn-secondary" type="button">查看答题解析</button>';
+            document.getElementById('viewResultButton').addEventListener('click', () => {
+                window.location.href = '/practice/' + practiceID + '/result';
+            });
+        } catch (error) {
+            submitted = false;
+            submitButton.disabled = false;
+            document.getElementById('saveAnswerButton').disabled = false;
+            navigationButtons.forEach(button => button.disabled = false);
+            submitResult.textContent = error.message;
+            submitResult.className = 'status-error';
         }
-        const result = await response.json();
-        const practiceID = document.getElementById("practice_id").value;
-        submitResult.innerHTML =
-          "总题数：" + result.total +
-          "，答对：" + result.correct_count +
-          "，答错：" + result.wrong_count +
-          '<p><button id="viewResultButton" type="button">查看答题解析</button></p>';
-        document.getElementById("viewResultButton").addEventListener("click", () => {
-          window.location.href = "/practice/" + practiceID + "/result";
-        });
-      }
+    }
 
-      submitButton.addEventListener("click", () => submitPractice(false));
+    submitButton.addEventListener('click', submitPractice);
 
-      form.addEventListener("submit", async function (event) {
-        console.log("提交答案事件触发");
-
+    form.addEventListener('submit', async function (event) {
         event.preventDefault();
+        const saveButton = document.getElementById('saveAnswerButton');
+        saveButton.disabled = true;
+        try {
+            const response = await fetch('/practice/answer', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    user_id: 'test_user',
+                    question_id: Number(document.getElementById('question_id').value),
+                    practice_id: Number(document.getElementById('practice_id').value),
+                    choice: Number(new FormData(this).get('choice'))
+                })
+            });
+            if (!response.ok) throw new Error('答案保存失败');
+            resultDiv.textContent = '✓ 答案已保存';
+            resultDiv.className = 'status-success';
+        } catch (error) {
+            resultDiv.textContent = error.message;
+            resultDiv.className = 'status-error';
+        } finally {
+            if (!submitted) saveButton.disabled = false;
+        }
+    });
 
-        const choice = document.getElementById("choice").value;
-
-        const question_id = document.getElementById("question_id").value;
-
-        const data = {
-          user_id: "test_user",
-          question_id: Number(question_id),
-          practice_id: Number(document.getElementById("practice_id").value),
-          choice: Number(choice),
-        };
-
-        const response = await fetch("/practice/answer", {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-          },
-
-          body: JSON.stringify(data),
-        });
-
-        resultDiv.textContent = response.ok ? "答案已保存" : "答案保存失败";
-        return;
-
-        const explanationDiv = document.getElementById("showExplanation");
-
-        // if (result.correct) {
-        //   resultDiv.innerHTML = "✅ 回答正确";
-
-        //   resultDiv.style.color = "green";
-        // } else {
-        //   resultDiv.innerHTML = "❌ 回答错误";
-
-        //   resultDiv.style.color = "red";
-        // }
-
-        // explanationDiv.style.display = "block";
-
-        // explanationDiv.innerHTML = "<h3>解析：</h3>" + result.explanation;
-      });
-
-      let remaining = Number(document.getElementById("duration").value);
-      const deadline = Date.now() + remaining * 1000;
-      countdown.textContent = formatTime(remaining);
-      const timer = setInterval(() => {
+    let remaining = Math.max(0, Number(document.getElementById('duration').value));
+    const deadline = Date.now() + remaining * 1000;
+    countdown.textContent = formatTime(remaining);
+    timer = setInterval(() => {
         remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
         countdown.textContent = formatTime(remaining);
-        if (remaining === 0) submitPractice(true);
-      }, 250);
-    </script>
-  </body>
+        if (remaining === 0) submitPractice();
+    }, 250);
+</script>
+</body>
 </html>

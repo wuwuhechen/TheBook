@@ -1,69 +1,91 @@
 <!DOCTYPE html>
-
-<html>
-
+<html lang="zh-CN">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TheBook · 题库</title>
     <link rel="icon" href="/static/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
-
 <body>
+<main class="site-shell">
+    <header class="site-header">
+        <a class="brand" href="/">
+            <span class="brand-mark">✦</span>
+            <span>TheBook 题库</span>
+        </a>
+        <nav class="header-actions" aria-label="账户导航">
+            <a class="btn btn-ghost" href="/auth/login">登录</a>
+            <a class="btn btn-primary" href="/auth/register">注册</a>
+        </nav>
+    </header>
 
-<h2>获取题目</h2>
+    <section class="hero">
+        <p class="eyebrow">Explore · Learn · Advance</p>
+        <!-- <h1>在知识的<span class="gradient-text">星空</span>中持续前进</h1> -->
+        <p class="lead">从一道题开始，记录每一次思考。</p>
+    </section>
 
-<form action="/question/current" method="POST">
+    <section class="card-grid" aria-label="练习方式">
+        <article class="card">
+            <span class="card-icon">↗</span>
+            <h2>继续练习</h2>
+            <p>从上次练习的题目开始</p>
+            <form action="/question/current" method="post">
+                <input type="hidden" name="question_id" value="1">
+                <button class="btn btn-primary" type="submit">开始答题</button>
+            </form>
+        </article>
 
-    <input 
-        type="hidden"
-        name="question_id"
-        value="1"
-    >
+        <article class="card">
+            <span class="card-icon">✦</span>
+            <h2>随机做题</h2>
+            <p>按照随机顺序进行训练</p>
+            <form action="/question/random" method="post">
+                <button class="btn btn-secondary" type="submit">随机练习</button>
+            </form>
+        </article>
 
-    <button type="submit">
-        继续上次进度
-    </button>
-
-</form>
-
-<form action="/question/random" method="POST">
-
-    <button type="submit">
-        随机获取题目
-    </button>
-
-</form>
-
-<h2>开始套题练习</h2>
-
-<form id="practiceForm">
-    <label for="practiceSize">题目数量：</label>
-    <input id="practiceSize" type="number" min="1" value="5" required>
-    <button type="submit">开始做套题</button>
-</form>
+        <article class="card">
+            <span class="card-icon">◎</span>
+            <h2>套题练习</h2>
+            <p>设置题目数量，进行套题模拟练习</p>
+            <form id="practiceForm">
+                <label class="field" for="practiceSize">
+                    <span>题目数量</span>
+                    <input id="practiceSize" name="practice_size" type="number" min="1" value="10" required>
+                </label>
+                <button class="btn btn-primary" type="submit">生成套题</button>
+            </form>
+        </article>
+    </section>
+</main>
 
 <script>
-    document.getElementById("practiceForm").addEventListener("submit", async function (event) {
+    document.getElementById('practiceForm').addEventListener('submit', async function (event) {
         event.preventDefault();
+        const button = this.querySelector('button[type="submit"]');
+        button.disabled = true;
 
-        const response = await fetch("/practice/init", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                user_id: "test_user",
-                practice_size: Number(document.getElementById("practiceSize").value)
-            })
-        });
+        try {
+            const response = await fetch('/practice/init', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    user_id: 'test_user',
+                    practice_size: Number(document.getElementById('practiceSize').value)
+                })
+            });
 
-        if (response.redirected) {
+            if (!response.ok) {
+                throw new Error(await response.text() || '生成套题失败');
+            }
             window.location.href = response.url;
-            return;
-        }
-
-        if (!response.ok) {
-            alert("练习初始化失败");
+        } catch (error) {
+            alert(error.message);
+            button.disabled = false;
         }
     });
 </script>
-
 </body>
-
 </html>

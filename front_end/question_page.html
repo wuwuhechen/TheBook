@@ -1,143 +1,104 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-	<link rel="icon" href="/static/favicon/favicon.ico" type="image/x-icon">
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>答题</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>答题 · TheBook</title>
+    <link rel="icon" href="/static/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<main class="site-shell">
+    <header class="site-header">
+        <a class="brand" href="/"><span class="brand-mark">✦</span><span>TheBook</span></a>
+        <a class="btn btn-ghost" href="/">返回首页</a>
+    </header>
 
-    <style>
-      #result {
-        margin-top: 20px;
-        font-size: 18px;
-        font-weight: bold;
-      }
+    <section class="question-card">
+        <div class="question-meta">
+            <span class="category-pill">{{.Category}}</span>
+            <span>答题进度 {{.ID}} / {{.TotalQuestions}}</span>
+        </div>
+        <p class="eyebrow">题目 · Question {{.ID}}</p>
+        <h1>{{.Question}}</h1>
 
-      #explanation {
-        margin-top: 10px;
-        padding: 10px;
-        border: 1px solid #ccc;
-        display: none;
-      }
-    </style>
-  </head>
+        <input type="hidden" id="explanation" value="{{.Explanation}}">
+        <input type="hidden" id="question_id" value="{{.RealID}}">
 
-  <body>
-    <p><a href="/">返回首页</a></p>
-    <h1>题号: {{.ID}}, 类别: {{.Category}}</h1>
+        <form id="answerForm" class="answer-panel">
+            <fieldset class="choice-fieldset">
+                <legend>选择你的答案</legend>
+                <label class="choice-card">
+                    <input type="radio" name="choice" value="0" required>
+                    <span class="choice-letter">A</span><span>{{.OptionA}}</span>
+                </label>
+                <label class="choice-card">
+                    <input type="radio" name="choice" value="1">
+                    <span class="choice-letter">B</span><span>{{.OptionB}}</span>
+                </label>
+                <label class="choice-card">
+                    <input type="radio" name="choice" value="2">
+                    <span class="choice-letter">C</span><span>{{.OptionC}}</span>
+                </label>
+                <label class="choice-card">
+                    <input type="radio" name="choice" value="3">
+                    <span class="choice-letter">D</span><span>{{.OptionD}}</span>
+                </label>
+            </fieldset>
+            <button class="btn btn-primary" type="submit">提交答案</button>
+        </form>
 
-    <p>题目：{{.Question}}</p>
+        <div class="navigation-row">
+            {{if .HasLastID}}
+            <form id="lastQuestionForm" action="{{if .RandomSessionID}}/question/random/{{.RandomSessionID}}{{else}}/question/request{{end}}" method="{{if .RandomSessionID}}GET{{else}}POST{{end}}">
+                {{if .RandomSessionID}}<input type="hidden" name="direction" value="last">{{else}}<input type="hidden" name="question_id" value="{{.LastID}}">{{end}}
+                <button class="btn btn-ghost" type="submit">← 上一题</button>
+            </form>
+            {{end}}
+            {{if .HasNextID}}
+            <form id="nextQuestionForm" action="{{if .RandomSessionID}}/question/random/{{.RandomSessionID}}{{else}}/question/request{{end}}" method="{{if .RandomSessionID}}GET{{else}}POST{{end}}">
+                {{if .RandomSessionID}}<input type="hidden" name="direction" value="next">{{else}}<input type="hidden" name="question_id" value="{{.NextID}}">{{end}}
+                <button class="btn btn-secondary" type="submit">下一题 →</button>
+            </form>
+            {{end}}
+        </div>
 
-    <p>
-      选项：<br />
-      A. {{.OptionA}} <br />
-      B. {{.OptionB}} <br />
-      C. {{.OptionC}} <br />
-      D. {{.OptionD}} <br />
-    </p>
+        <div id="result" role="status"></div>
+        <div id="showExplanation"></div>
+    </section>
+</main>
 
-    <p>答题进度: {{.ID}}/{{.TotalQuestions}}</p>
-
-    <!-- 隐藏解析字段 -->
-    <input type="hidden" id="explanation" value="{{.Explanation}}" />
-
-    <!-- 隐藏题目ID -->
-    <input type="hidden" id="question_id" value="{{.RealID}}" />
-
-    <form id="answerForm">
-      <label for="choice"> 选择答案： </label>
-
-      <select name="choice" id="choice">
-        <option value="0">A</option>
-
-        <option value="1">B</option>
-
-        <option value="2">C</option>
-
-        <option value="3">D</option>
-      </select>
-
-      <button type="submit">提交答案</button>
-    </form>
-
-    {{if .HasLastID}}
-    <form id="lastQuestionForm" action="{{if .RandomSessionID}}/question/random/{{.RandomSessionID}}{{else}}/question/request{{end}}" method="{{if .RandomSessionID}}GET{{else}}POST{{end}}">
-      {{if .RandomSessionID}}
-      <input type="hidden" name="direction" value="last" />
-      {{else}}
-      <input type="hidden" name="question_id" value="{{.LastID}}" />
-      {{end}}
-
-      <button type="submit">上一题</button>
-    </form>
-    {{end}}
-
-    {{if .HasNextID}}
-    <form id="nextQuestionForm" action="{{if .RandomSessionID}}/question/random/{{.RandomSessionID}}{{else}}/question/request{{end}}" method="{{if .RandomSessionID}}GET{{else}}POST{{end}}">
-      {{if .RandomSessionID}}
-      <input type="hidden" name="direction" value="next" />
-      {{else}}
-      <input type="hidden" name="question_id" value="{{.NextID}}" />
-      {{end}}
-
-      <button type="submit">下一题</button>
-    </form>
-    {{end}}
-
-    <!-- 显示结果 -->
-    <div id="result"></div>
-
-    <!-- 显示解析 -->
-    <div id="showExplanation"></div>
-
-    <script>
-      const form = document.getElementById("answerForm");
-
-      form.addEventListener("submit", async function (event) {
-        console.log("提交答案事件触发");
-
+<script>
+    document.getElementById('answerForm').addEventListener('submit', async function (event) {
         event.preventDefault();
+        const button = this.querySelector('button[type="submit"]');
+        const resultDiv = document.getElementById('result');
+        const explanationDiv = document.getElementById('showExplanation');
+        button.disabled = true;
 
-        const choice = document.getElementById("choice").value;
-
-        const question_id = document.getElementById("question_id").value;
-
-        const data = {
-          user_id: "test_user",
-          question_id: Number(question_id),
-          choice: Number(choice),
-        };
-
-        const response = await fetch("/question/check_answer", {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-          },
-
-          body: JSON.stringify(data),
-        });
-
-        const result = await response.json();
-
-        const resultDiv = document.getElementById("result");
-
-        const explanationDiv = document.getElementById("showExplanation");
-
-        if (result.correct) {
-          resultDiv.innerHTML = "✅ 回答正确";
-
-          resultDiv.style.color = "green";
-        } else {
-          resultDiv.innerHTML = "❌ 回答错误";
-
-          resultDiv.style.color = "red";
+        try {
+            const response = await fetch('/question/check_answer', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    user_id: 'test_user',
+                    question_id: Number(document.getElementById('question_id').value),
+                    choice: Number(new FormData(this).get('choice'))
+                })
+            });
+            if (!response.ok) throw new Error('提交失败，请稍后重试');
+            const result = await response.json();
+            resultDiv.textContent = result.correct ? '✓ 回答正确' : '× 回答错误';
+            resultDiv.className = result.correct ? 'status-success' : 'status-error';
+            explanationDiv.innerHTML = '<h3>答案解析</h3><p>' + result.explanation + '</p>';
+            explanationDiv.style.display = 'block';
+        } catch (error) {
+            resultDiv.textContent = error.message;
+            resultDiv.className = 'status-error';
+        } finally {
+            button.disabled = false;
         }
-
-        explanationDiv.style.display = "block";
-
-        explanationDiv.innerHTML = "<h3>解析：</h3>" + result.explanation;
-      });
-    </script>
-  </body>
+    });
+</script>
+</body>
 </html>

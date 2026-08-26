@@ -1,41 +1,69 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-	<link rel="icon" href="/static/favicon/favicon.ico" type="image/x-icon">
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>注册</title>
-  </head>
-  <body>
-    <p><a href="/">返回首页</a></p>
-    <h1>注册</h1>
-    <form id="registerForm">
-      <p><label>用户名 <input id="username" required /></label></p>
-      <p><label>昵称 <input id="nickname" required /></label></p>
-      <p><label>密码 <input id="password" type="password" required /></label></p>
-      <button type="submit">注册</button>
-    </form>
-    <p id="message"></p>
-    <p>已有账号？<a href="/auth/login">去登录</a></p>
-    <script>
-      document.getElementById("registerForm").addEventListener("submit", async (event) => {
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 · TheBook</title>
+    <link rel="icon" href="/static/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<main class="site-shell auth-layout">
+    <section class="auth-card">
+        <a class="brand" href="/">
+            <span class="brand-mark">✦</span>
+            <span>TheBook</span>
+        </a>
+        <p class="eyebrow">Create Account</p>
+        <h1>注册</h1>
+        <p class="muted">创建账户，让每一次练习都留下轨迹。</p>
+
+        <form id="registerForm">
+            <label class="field" for="username">
+                <span>用户名</span>
+                <input id="username" name="username" type="text" autocomplete="username" required>
+            </label>
+            <label class="field" for="nickname">
+                <span>昵称</span>
+                <input id="nickname" name="nickname" type="text" autocomplete="nickname" required>
+            </label>
+            <label class="field" for="password">
+                <span>密码</span>
+                <input id="password" name="password" type="password" autocomplete="new-password" required>
+            </label>
+            <button class="btn btn-primary" type="submit">创建账户</button>
+        </form>
+        <p id="message" class="form-message" role="alert"></p>
+        <p class="auth-switch">已有账户？<a href="/auth/login">返回登录</a></p>
+    </section>
+</main>
+
+<script>
+    const message = document.getElementById('message');
+    document.getElementById('registerForm').addEventListener('submit', async function (event) {
         event.preventDefault();
-        const response = await fetch("/auth/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username: document.getElementById("username").value,
-            nickname: document.getElementById("nickname").value,
-            password: document.getElementById("password").value
-          })
-        });
-        const result = await response.json();
-        if (!response.ok) {
-          document.getElementById("message").textContent = result.error || "注册失败";
-          return;
+        message.textContent = '';
+        const button = this.querySelector('button[type="submit"]');
+        button.disabled = true;
+
+        try {
+            const response = await fetch('/auth/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    username: document.getElementById('username').value,
+                    nickname: document.getElementById('nickname').value,
+                    password: document.getElementById('password').value
+                })
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(data.error || data.message || '注册失败');
+            window.location.href = '/';
+        } catch (error) {
+            message.textContent = error.message;
+            button.disabled = false;
         }
-        window.location.href = "/";
-      });
-    </script>
-  </body>
+    });
+</script>
+</body>
 </html>
