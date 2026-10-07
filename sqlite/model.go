@@ -59,3 +59,12 @@ type QuestionProgress struct {
 	CurrentQuestionID uint      `gorm:"not null" json:"current_question_id"`
 	UpdatedAt         time.Time `gorm:"not null" json:"updated_at"`
 }
+
+type WrongQuestion struct {
+	ID           uint      `gorm:"primaryKey" json:"id"`
+	UserID       uint      `gorm:"not null;uniqueIndex:idx_wrong_question" json:"user_id"`
+	QuestionID   uint      `gorm:"not null;uniqueIndex:idx_wrong_question" json:"question_id"`
+	WrongCount   int       `gorm:"not null" json:"wrong_count"`
+	FirstWrongAt time.Time `gorm:"not null" json:"first_wrong_at"`
+	LastWrongAt  time.Time `gorm:"not null" json:"last_wrong_at"`
+}

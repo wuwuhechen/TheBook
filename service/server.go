@@ -14,6 +14,7 @@ type Server struct {
 
 	DB model.QuestionManager
 	PM model.PracticeManager
+	WQ model.WrongQuestionManager
 	RS model.RandomSessionManager
 	UM model.UserManager
 	QS model.QuestionProgressManager

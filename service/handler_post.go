@@ -238,10 +238,31 @@ func (s *Server) HandlerSubmitPractice(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save practice record"})
 		return
 	}
+	if err := s.recordWrongAnswers(record); err != nil {
+		s.appLog().Error("保存错题本失败", zap.Uint("user_id", practice.UserID), zap.Int("practice_id", practice.ID), zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save wrong questions"})
+		return
+	}
 
 	practice.Completed = true
 	s.businessLog().Info("套题已提交", zap.Uint("user_id", practice.UserID), zap.Int("practice_id", practice.ID), zap.Int("correct_count", results.CorrectCount), zap.Int("wrong_count", results.WrongCount))
 	c.JSON(http.StatusOK, results)
+}
+
+// recordWrongAnswers 将套题中的错误答案交由独立错题本管理器累计保存。
+func (s *Server) recordWrongAnswers(record *model.PracticeRecord) error {
+	for _, answer := range record.Answers {
+		if answer.Correct {
+			continue
+		}
+		if s.WQ == nil {
+			return fmt.Errorf("wrong question manager is not configured")
+		}
+		if err := s.WQ.RecordWrongQuestion(record.UserID, answer.QuestionID, record.SubmitTime); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s *Server) convertToPracticeRecord(practice *model.Practice, results *model.PracticeResponse) (*model.PracticeRecord, error) {

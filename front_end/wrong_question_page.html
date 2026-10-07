@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>错题本 · TheBook</title>
+    <link rel="icon" href="/static/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/static/styles.css?v=20261007-wrong-questions-1">
+</head>
+<body>
+<main class="site-shell">
+    <header class="site-header">
+        <a class="brand" href="/"><span class="brand-mark">✦</span><span>TheBook</span></a>
+        <nav class="header-actions" aria-label="页面导航">
+            <a class="btn btn-ghost" href="/practice/history">做题历史</a>
+            <a class="btn btn-ghost" href="/">返回首页</a>
+        </nav>
+    </header>
+
+    <section class="hero result-hero">
+        <p class="eyebrow">Review · Refine · Remember</p>
+        <h1>错题本</h1>
+        <p class="lead">针对复盘每一道错题，把薄弱点变成掌握点。</p>
+    </section>
+
+    <section class="result-list" aria-label="错题列表">
+        {{if .Items}}
+            {{range .Items}}
+            <article class="result-item wrong-question-item">
+                <div class="question-meta">
+                    <span class="category-pill">{{.Category}}</span>
+                    <span>错题 {{.Number}} · 累计错误 {{.WrongCount}} 次</span>
+                </div>
+                <h2>{{.Question}}</h2>
+                <ol class="option-list compact" type="A">{{range .Choices}}<li>{{.}}</li>{{end}}</ol>
+                <p class="status-error">需重点复习 · 最近错误：{{.LastWrongAt.Format "2006-01-02 15:04"}}</p>
+                <p>正确答案：{{.CorrectAnswerText}}</p>
+                <div class="explanation"><strong>解析</strong><p>{{.Explanation}}</p></div>
+            </article>
+            {{end}}
+        {{else}}
+            <div class="empty-state">
+                <p>目前没有错题记录，继续保持。</p>
+                <a class="btn btn-primary" href="/">去做题</a>
+            </div>
+        {{end}}
+    </section>
+
+    <nav class="pagination" aria-label="错题本分页">
+        {{if .HasPrev}}<a class="btn btn-ghost" href="/practice/wrong-questions?page={{.PrevPage}}">上一页</a>{{end}}
+        <span>第 {{.Page}} 页</span>
+        {{if .HasNext}}<a class="btn btn-ghost" href="/practice/wrong-questions?page={{.NextPage}}">下一页</a>{{end}}
+    </nav>
+</main>
+</body>
+</html>

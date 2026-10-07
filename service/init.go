@@ -29,6 +29,10 @@ func InitSystem(log *logger.Logger) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %v", err)
 	}
+	// 运行中的旧数据库可能缺少后续新增的错题本表；AutoMigrate 仅补齐缺失表/字段，不会清空已有数据。
+	if err := db.AutoMigrate(&sqlite.WrongQuestion{}); err != nil {
+		return nil, fmt.Errorf("failed to migrate wrong question table: %w", err)
+	}
 
 	SQLServer := DataInitSQLite(db)
 
@@ -68,6 +72,7 @@ func InitSystem(log *logger.Logger) (*Server, error) {
 	server := &Server{
 		DB:           SQLServer.DB,
 		PM:           SQLServer.PM,
+		WQ:           SQLServer.WQ,
 		RS:           SQLServer.RS,
 		UM:           SQLServer.UM,
 		QS:           SQLServer.QS,
@@ -95,6 +100,7 @@ func DataInitSQLite(db *gorm.DB) *Server {
 	return &Server{
 		DB: model.NewSQLiteQuestionBank(db),
 		PM: model.NewPracticeBank(db),
+		WQ: model.NewWrongQuestionBank(db),
 		RS: model.NewRandomSessionBank(),
 		UM: model.NewUserBankSQLite(db),
 		QS: model.NewQuestionProgressBankSQLite(db),
@@ -199,6 +205,7 @@ func GinInit(path string, Server *Server, log *logger.Logger) (*gin.Engine, erro
 	practiceMode.POST("/answer", Server.HandlerPostSubmitAnswer)
 	practiceMode.POST("/:practice_id/submit", Server.HandlerSubmitPractice)
 	practiceMode.GET("/history", Server.HandlerGetPracticeHistoryPage)
+	practiceMode.GET("/wrong-questions", Server.HandlerGetWrongQuestionPage)
 	practiceMode.GET("/:practice_id", Server.HandlerGetPracticePage)
 	practiceMode.GET("/:practice_id/result", Server.HandlerGetPracticeResultPage)
 

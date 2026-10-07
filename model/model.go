@@ -15,6 +15,7 @@ type PracticeResponse = structs.PracticeResponse
 type Request = structs.Request
 type PracticeRecord = structs.PracticeRecord
 type AnswerRecord = structs.AnswerRecord
+type WrongQuestion = structs.WrongQuestion
 type QuestionProgress = structs.QuestionProgress
 type RandomSession = structs.RandomSession
 type User = structs.User
@@ -25,10 +26,13 @@ type PracticeResultItem = structs.PracticeResultItem
 type PracticeResultPageData = structs.PracticeResultPageData
 type PracticeHistoryItem = structs.PracticeHistoryItem
 type PracticeHistoryPageData = structs.PracticeHistoryPageData
+type WrongQuestionItem = structs.WrongQuestionItem
+type WrongQuestionPageData = structs.WrongQuestionPageData
 
 // 管理器接口
 type QuestionManager = manager.QuestionManager
 type PracticeManager = manager.PracticeManager
+type WrongQuestionManager = manager.WrongQuestionManager
 type QuestionProgressManager = manager.QuestionProgressManager
 type RandomSessionManager = manager.RandomSessionManager
 type UserManager = manager.UserManager
@@ -42,6 +46,7 @@ type RandomSessionBank = bank.RandomSessionBank
 type UserBank = bank.UserBank
 type UserBankSQLite = bank.UserBankSQLite
 type QuestionProgressBankSQLite = bank.QuestionProgressBankSQLite
+type WrongQuestionBank = bank.WrongQuestionBank
 
 // 构造函数
 var NewResponse = structs.NewResponse
@@ -51,6 +56,7 @@ var NewRandomSession = structs.NewRandomSession
 var NewQuestionBank = bank.NewQuestionBank
 var NewSQLiteQuestionBank = bank.NewSQLiteQuestionBank
 var NewPracticeBank = bank.NewPracticeBank
+var NewWrongQuestionBank = bank.NewWrongQuestionBank
 var NewQuestionProgressBank = bank.NewQuestionProgressBank
 var NewRandomSessionBank = bank.NewRandomSessionBank
 var NewUserBank = bank.NewUserBank

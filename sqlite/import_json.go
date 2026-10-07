@@ -4,6 +4,7 @@ import (
 	"TheBook/auth"
 	"TheBook/model"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -89,53 +90,91 @@ func ReadQuestionProgress(path string) ([]QuestionProgress, error) {
 	return progresses, nil
 }
 
+func ReadWrongQuestions(path string) ([]WrongQuestion, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var wrongQuestions []WrongQuestion
+	if err := json.NewDecoder(file).Decode(&wrongQuestions); err != nil {
+		return nil, err
+	}
+	return wrongQuestions, nil
+}
+
 func MigrateDatabase(db *gorm.DB, dataPath string) error {
 	fmt.Println("Migrating data from JSON files to SQLite database...")
 
 	questions, err := ReadQuestions(dataPath + "/data.json")
-	fmt.Println("Read questions:", len(questions))
-	if err != nil {
+	if errors.Is(err, os.ErrNotExist) {
+		fmt.Println("No questions data found, skipping questions migration.")
+	} else if err != nil {
 		return err
-	}
-	if err := AddQuestions(db, questions); err != nil {
-		return err
+	} else {
+		fmt.Println("Read questions:", len(questions))
+		if err := AddQuestions(db, questions); err != nil {
+			return err
+		}
 	}
 
 	users, err := ReadUsers(dataPath + "/users.json")
-	fmt.Println("Read users:", len(users))
-	if err != nil {
+	if errors.Is(err, os.ErrNotExist) {
+		fmt.Println("No users data found, skipping users migration.")
+	} else if err != nil {
 		return err
-	}
-	for i := range users {
-		if isBcryptPassword(users[i].Password) {
-			continue
+	} else {
+		for i := range users {
+			if isBcryptPassword(users[i].Password) {
+				continue
+			}
+			passwordHash, err := auth.HashPassword(users[i].Password)
+			if err != nil {
+				return fmt.Errorf("hash password for %s: %w", users[i].Username, err)
+			}
+			users[i].Password = passwordHash
 		}
-		passwordHash, err := auth.HashPassword(users[i].Password)
-		if err != nil {
-			return fmt.Errorf("hash password for %s: %w", users[i].Username, err)
+		if err := AddUsers(db, users); err != nil {
+			return err
 		}
-		users[i].Password = passwordHash
-	}
-	if err := AddUsers(db, users); err != nil {
-		return err
 	}
 
 	practiceRecords, err := ReadPracticeRecords(dataPath + "/practice_records.json")
-	fmt.Println("Read practice records:", len(practiceRecords))
-	if err != nil {
+	if errors.Is(err, os.ErrNotExist) {
+		fmt.Println("No practice records data found, skipping practice records migration.")
+	} else if err != nil {
 		return err
-	}
-	if err := AddPracticeRecords(db, practiceRecords); err != nil {
-		return err
+	} else {
+		fmt.Println("Read practice records:", len(practiceRecords))
+		if err := AddPracticeRecords(db, practiceRecords); err != nil {
+			return err
+		}
 	}
 
 	progresses, err := ReadQuestionProgress(dataPath + "/question_progress.json")
-	fmt.Println("Read question progresses:", len(progresses))
-	if err != nil {
+	if errors.Is(err, os.ErrNotExist) {
+		fmt.Println("No question progress data found, skipping question progress migration.")
+	} else if err != nil {
 		return err
+	} else {
+		fmt.Println("Read question progresses:", len(progresses))
+		if err := AddQuestionProgresses(db, progresses); err != nil {
+			return err
+		}
 	}
-	if err := AddQuestionProgresses(db, progresses); err != nil {
+
+	wrongQuestions, err := ReadWrongQuestions(dataPath + "/wrong_questions.json")
+	if errors.Is(err, os.ErrNotExist) {
+		fmt.Println("No wrong questions data found, skipping wrong questions migration.")
+	} else if err != nil {
 		return err
+	} else {
+		fmt.Println("Read wrong questions:", len(wrongQuestions))
+		if err := AddWrongQuestions(db, wrongQuestions); err != nil {
+			return err
+		}
+
 	}
 
 	return nil

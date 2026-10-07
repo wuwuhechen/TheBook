@@ -22,3 +22,12 @@ type AnswerRecord struct {
 	Answered   bool `json:"answered"`
 	Correct    bool `json:"correct"`
 }
+
+// WrongQuestion 保存错题本中一题的累计错误信息。
+type WrongQuestion struct {
+	UserID       uint      `json:"user_id"`
+	QuestionID   uint      `json:"question_id"`
+	WrongCount   int       `json:"wrong_count"`
+	FirstWrongAt time.Time `json:"first_wrong_at"`
+	LastWrongAt  time.Time `json:"last_wrong_at"`
+}

@@ -110,3 +110,19 @@ func AddQuestionProgresses(db *gorm.DB, progresses []QuestionProgress) error {
 	}
 	return nil
 }
+
+func AddWrongQuestion(db *gorm.DB, wrongQuestion *WrongQuestion) error {
+	return db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "user_id"}, {Name: "question_id"}},
+		UpdateAll: true,
+	}).Create(wrongQuestion).Error
+}
+
+func AddWrongQuestions(db *gorm.DB, wrongQuestions []WrongQuestion) error {
+	for i := range wrongQuestions {
+		if err := AddWrongQuestion(db, &wrongQuestions[i]); err != nil {
+			return err
+		}
+	}
+	return nil
+}

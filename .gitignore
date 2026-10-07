@@ -8,3 +8,5 @@ database/question_progress.json
 launch.json
 database/temp.db
 docs
+database/test.db
+database/your_database.db

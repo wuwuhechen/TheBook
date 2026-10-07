@@ -173,3 +173,25 @@ type PracticeHistoryPageData struct {
 	PrevPage int                   `json:"prev_page"`
 	NextPage int                   `json:"next_page"`
 }
+
+// WrongQuestionItem 是错题本页面展示的一道题目。
+type WrongQuestionItem struct {
+	Number            int       `json:"number"`
+	Category          string    `json:"category"`
+	Question          string    `json:"question"`
+	Choices           []string  `json:"choices"`
+	CorrectAnswerText string    `json:"correct_answer_text"`
+	Explanation       string    `json:"explanation"`
+	WrongCount        int       `json:"wrong_count"`
+	LastWrongAt       time.Time `json:"last_wrong_at"`
+}
+
+// WrongQuestionPageData 包含错题本的一页内容与分页信息。
+type WrongQuestionPageData struct {
+	Items    []WrongQuestionItem `json:"items"`
+	Page     int                 `json:"page"`
+	HasPrev  bool                `json:"has_prev"`
+	HasNext  bool                `json:"has_next"`
+	PrevPage int                 `json:"prev_page"`
+	NextPage int                 `json:"next_page"`
+}

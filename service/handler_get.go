@@ -241,6 +241,63 @@ func (s *Server) HandlerGetPracticeHistoryPage(c *gin.Context) {
 	})
 }
 
+// HandlerGetWrongQuestionPage 分页渲染当前用户的错题本。
+func (s *Server) HandlerGetWrongQuestionPage(c *gin.Context) {
+	userID, ok := currentUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthenticated user"})
+		return
+	}
+
+	page := 1
+	if value := c.Query("page"); value != "" {
+		parsed, err := strconv.Atoi(value)
+		if err != nil || parsed < 1 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page"})
+			return
+		}
+		page = parsed
+	}
+
+	const pageSize = 10
+	wrongQuestions, err := s.WQ.ListWrongQuestionsByUser(userID, pageSize+1, (page-1)*pageSize)
+	if err != nil {
+		s.appLog().Error("读取错题本失败")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load wrong questions"})
+		return
+	}
+
+	hasNext := len(wrongQuestions) > pageSize
+	if hasNext {
+		wrongQuestions = wrongQuestions[:pageSize]
+	}
+	items := make([]model.WrongQuestionItem, 0, len(wrongQuestions))
+	for index, wrongQuestion := range wrongQuestions {
+		question, err := s.DB.GetQuestion(int(wrongQuestion.QuestionID))
+		if err != nil {
+			continue
+		}
+		items = append(items, model.WrongQuestionItem{
+			Number:            index + 1,
+			Category:          question.Category,
+			Question:          question.Question,
+			Choices:           question.Choices,
+			CorrectAnswerText: choiceText(question.Choices, question.Answer),
+			Explanation:       question.Explanation,
+			WrongCount:        wrongQuestion.WrongCount,
+			LastWrongAt:       wrongQuestion.LastWrongAt,
+		})
+	}
+	c.HTML(http.StatusOK, "wrong_question_page.html", model.WrongQuestionPageData{
+		Items:    items,
+		Page:     page,
+		HasPrev:  page > 1,
+		HasNext:  hasNext,
+		PrevPage: page - 1,
+		NextPage: page + 1,
+	})
+}
+
 func (s *Server) practiceResultFromRecord(record *model.PracticeRecord) model.PracticeResultPageData {
 	items := make([]model.PracticeResultItem, 0, len(record.Answers))
 	for index, answer := range record.Answers {

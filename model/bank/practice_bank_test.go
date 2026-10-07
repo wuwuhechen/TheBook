@@ -23,6 +23,7 @@ func TestPracticeBankPersistUsesMigratedTables(t *testing.T) {
 		PracticeID:     123,
 		TotalQuestions: 1,
 		CorrectCount:   1,
+		WrongCount:     1,
 		Answers: []structs.AnswerRecord{{
 			QuestionID: 7,
 			Answer:     1,

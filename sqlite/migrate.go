@@ -37,6 +37,7 @@ func Migrate(path string) error {
 		&PracticeRecord{},
 		&PracticeAnswer{},
 		&QuestionProgress{},
+		&WrongQuestion{},
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create database: %w", err)
