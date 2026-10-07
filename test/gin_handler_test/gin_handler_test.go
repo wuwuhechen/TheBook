@@ -404,6 +404,7 @@ func TestHandlerPostSubmitAnswer(t *testing.T) {
 
 	practice := (&model.Practice{}).NewPractice()
 	practice.ID = practiceID
+	practice.UserID = 1
 	practice.Questions = []int{question.ID}
 	if err := questionServer.PM.Create(practice); err != nil {
 		t.Fatalf("Failed to create practice: %v", err)
@@ -574,6 +575,7 @@ func TestHandlerGetPracticePage(t *testing.T) {
 
 	practice := (&model.Practice{}).NewPractice()
 	practice.ID = practiceID
+	practice.UserID = 1
 	practice.Questions = []int{question.ID}
 	practice.TotalQuestions = questionServer.DB.GetTotalCount()
 	practice.Duration = 5 * time.Minute
@@ -627,6 +629,7 @@ func TestHandlerGetPracticeResultPage(t *testing.T) {
 
 	practice := (&model.Practice{}).NewPractice()
 	practice.ID = practiceID
+	practice.UserID = 1
 	practice.Questions = []int{question.ID}
 	practice.Answers[question.ID] = question.Answer
 	practice.Completed = true

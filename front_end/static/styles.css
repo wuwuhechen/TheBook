@@ -307,6 +307,23 @@ input[type="checkbox"] { width: 18px; min-height: 18px; margin: 0; accent-color:
 .result-hero .lead { margin-inline: auto; }
 .inline-summary { margin-bottom: 14px; color: #dce6ff; }
 .page-footer { display: flex; justify-content: center; margin-top: 28px; }
+.history-list { display: grid; gap: 14px; margin-top: 22px; }
+.history-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  padding: 22px 24px; border: 1px solid rgba(255, 255, 255, 0.52); border-radius: 18px;
+  color: #172554; text-decoration: none; background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 12px 32px rgba(16, 24, 80, 0.16); backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+.history-item:hover { transform: translateY(-2px); border-color: rgba(139, 140, 255, 0.55); background: rgba(255, 255, 255, 0.86); box-shadow: 0 16px 38px rgba(16, 24, 80, 0.23); }
+.history-title { margin: 0 0 6px; color: #1e1b4b; font-weight: 800; }
+.history-item .muted { margin: 0; color: #475569; }
+.history-stats { display: flex; align-items: center; gap: 14px; white-space: nowrap; font-weight: 750; }
+.history-link { color: #4338ca; }
+.empty-state { display: grid; justify-items: center; gap: 14px; padding: 46px 20px; border: 1px dashed rgba(148, 163, 255, 0.35); border-radius: 16px; color: var(--muted); }
+.empty-state p { margin: 0; }
+.pagination { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 28px; color: var(--muted); }
 .correct { color: var(--success); font-weight: 750; }
 .wrong { color: var(--danger); font-weight: 750; }
 .muted { color: var(--muted); }
@@ -318,6 +335,8 @@ input[type="checkbox"] { width: 18px; min-height: 18px; margin: 0; accent-color:
   .answer-panel { grid-template-columns: 1fr; }
   .answer-panel button { width: 100%; }
   .navigation-row form, .navigation-row button { flex: 1; }
+  .history-item { align-items: flex-start; flex-direction: column; }
+  .history-stats { width: 100%; justify-content: space-between; }
 }
 
 /* 2K/4K 等高分辨率桌面屏幕：增加内容宽度与卡片空间。 */

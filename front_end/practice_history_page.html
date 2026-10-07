@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>做题历史 · TheBook</title>
+    <link rel="icon" href="/static/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/static/styles.css?v=20261007-history-1">
+</head>
+<body>
+<main class="site-shell">
+    <header class="site-header">
+        <a class="brand" href="/"><span class="brand-mark">✦</span><span>TheBook</span></a>
+        <a class="btn btn-ghost" href="/">返回首页</a>
+    </header>
+
+    <section class="hero result-hero">
+        <p class="eyebrow">Practice Archive</p>
+        <h1>做题历史</h1>
+        <p class="lead">回看每一次完成的练习，找到下一步的方向。</p>
+    </section>
+
+    <section class="history-list" aria-label="历史练习">
+        {{if .Items}}
+            {{range .Items}}
+            <a class="history-item" href="/practice/{{.PracticeID}}/result">
+                <div>
+                    <p class="history-title">套题练习 · {{.SubmitTime.Format "2006-01-02 15:04"}}</p>
+                    <p class="muted">共 {{.TotalQuestions}} 题 · 正确率 {{.CorrectRate}}%</p>
+                </div>
+                <div class="history-stats" aria-label="答题统计">
+                    <span class="status-success">✓ {{.CorrectCount}}</span>
+                    <span class="status-error">× {{.WrongCount}}</span>
+                    <span class="history-link">查看结果 →</span>
+                </div>
+            </a>
+            {{end}}
+        {{else}}
+            <div class="empty-state">
+                <p>还没有已完成的套题练习。</p>
+                <a class="btn btn-primary" href="/">去做一套题</a>
+            </div>
+        {{end}}
+    </section>
+
+    <nav class="pagination" aria-label="历史记录分页">
+        {{if .HasPrev}}<a class="btn btn-ghost" href="/practice/history?page={{.PrevPage}}">上一页</a>{{end}}
+        <span>第 {{.Page}} 页</span>
+        {{if .HasNext}}<a class="btn btn-ghost" href="/practice/history?page={{.NextPage}}">下一页</a>{{end}}
+    </nav>
+</main>
+</body>
+</html>

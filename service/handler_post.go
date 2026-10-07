@@ -203,13 +203,9 @@ func (s *Server) HandlerPostSubmitAnswer(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	practice, err := s.PM.FindByID(req.PracticeID)
+	practice, err := s.getOwnedPracitce(c, req.PracticeID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-		return
-	}
-	if practice == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Practice not found"})
 		return
 	}
 	practice.Answers[req.QuestionID] = req.Choice
@@ -224,14 +220,9 @@ func (s *Server) HandlerSubmitPractice(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid practice ID"})
 		return
 	}
-	practice, err := s.PM.FindByID(practiceID)
+	practice, err := s.getOwnedPracitce(c, practiceID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Practice not found"})
-		return
-	}
-	userIDValue, exists := c.Get("userID")
-	if !exists || practice.UserID != userIDValue.(uint) {
-		c.JSON(http.StatusForbidden, gin.H{"error": "No permission to submit this practice"})
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 	if practice.Completed {
@@ -239,11 +230,6 @@ func (s *Server) HandlerSubmitPractice(c *gin.Context) {
 		return
 	}
 	results := practice.CheckPractice(s.DB)
-	// if err := s.persistPracticeRecord(practice, results); err != nil {
-	// 	s.appLog().Error("保存套题记录失败", zap.Uint("user_id", practice.UserID), zap.Int("practice_id", practice.ID), zap.Error(err))
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save practice record"})
-	// 	return
-	// }
 
 	record, err := s.convertToPracticeRecord(practice, results)
 	err = s.PM.Persist(record)
@@ -267,7 +253,7 @@ func (s *Server) convertToPracticeRecord(practice *model.Practice, results *mode
 		}
 		answer, answered := practice.Answers[id]
 		correct := answered && answer == q.Answer
-		answers = append(answers, model.AnswerRecord{QuestionID: id, Answer: answer, Answered: answered, Correct: correct})
+		answers = append(answers, model.AnswerRecord{QuestionID: (uint)(id), Answer: answer, Answered: answered, Correct: correct})
 	}
 
 	return &model.PracticeRecord{
@@ -457,4 +443,19 @@ func (s *Server) HandlerPostLogout(c *gin.Context) {
 	c.SetCookie("access_token", "", -1, "/", "", false, true)
 	s.businessLog().Info("用户已退出登录")
 	c.JSON(http.StatusOK, gin.H{"message": "Logout successful"})
+}
+
+func (s *Server) getOwnedPracitce(c *gin.Context, practiceID int) (*model.Practice, error) {
+	practice, err := s.PM.FindByID(practiceID)
+	if err != nil {
+		return nil, err
+	}
+	if practice == nil {
+		return nil, fmt.Errorf("practice not found")
+	}
+	userIDValue, exists := c.Get("userID")
+	if !exists || practice.UserID != userIDValue {
+		return nil, fmt.Errorf("no permission to submit this practice")
+	}
+	return practice, nil
 }

@@ -153,3 +153,23 @@ type PracticeResultPageData struct {
 	WrongCount   int                  `json:"wrong_count"`
 	Items        []PracticeResultItem `json:"Items"`
 }
+
+// PracticeHistoryItem 是历史练习列表中展示的一次已提交练习。
+type PracticeHistoryItem struct {
+	PracticeID     int       `json:"practice_id"`
+	TotalQuestions int       `json:"total_questions"`
+	CorrectCount   int       `json:"correct_count"`
+	WrongCount     int       `json:"wrong_count"`
+	CorrectRate    int       `json:"correct_rate"`
+	SubmitTime     time.Time `json:"submit_time"`
+}
+
+// PracticeHistoryPageData 包含当前用户的一页历史练习记录。
+type PracticeHistoryPageData struct {
+	Items    []PracticeHistoryItem `json:"items"`
+	Page     int                   `json:"page"`
+	HasPrev  bool                  `json:"has_prev"`
+	HasNext  bool                  `json:"has_next"`
+	PrevPage int                   `json:"prev_page"`
+	NextPage int                   `json:"next_page"`
+}

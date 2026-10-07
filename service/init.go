@@ -198,6 +198,7 @@ func GinInit(path string, Server *Server, log *logger.Logger) (*gin.Engine, erro
 	practiceMode.POST("/init", Server.HandlerPostPracticeInit)
 	practiceMode.POST("/answer", Server.HandlerPostSubmitAnswer)
 	practiceMode.POST("/:practice_id/submit", Server.HandlerSubmitPractice)
+	practiceMode.GET("/history", Server.HandlerGetPracticeHistoryPage)
 	practiceMode.GET("/:practice_id", Server.HandlerGetPracticePage)
 	practiceMode.GET("/:practice_id/result", Server.HandlerGetPracticeResultPage)
 

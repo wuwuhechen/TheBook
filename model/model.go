@@ -23,6 +23,8 @@ type LoginRequest = structs.LoginRequest
 type QuestionPageData = structs.QuestionPageData
 type PracticeResultItem = structs.PracticeResultItem
 type PracticeResultPageData = structs.PracticeResultPageData
+type PracticeHistoryItem = structs.PracticeHistoryItem
+type PracticeHistoryPageData = structs.PracticeHistoryPageData
 
 // 管理器接口
 type QuestionManager = manager.QuestionManager
@@ -40,7 +42,6 @@ type RandomSessionBank = bank.RandomSessionBank
 type UserBank = bank.UserBank
 type UserBankSQLite = bank.UserBankSQLite
 type QuestionProgressBankSQLite = bank.QuestionProgressBankSQLite
-type PracticeBankSQLite = bank.PracticeBankSQLite
 
 // 构造函数
 var NewResponse = structs.NewResponse
@@ -55,4 +56,3 @@ var NewRandomSessionBank = bank.NewRandomSessionBank
 var NewUserBank = bank.NewUserBank
 var NewUserBankSQLite = bank.NewUserBankSQLite
 var NewQuestionProgressBankSQLite = bank.NewQuestionProgressBankSQLite
-var NewPracticeBankSQLite = bank.NewPracticeBankSQLite
