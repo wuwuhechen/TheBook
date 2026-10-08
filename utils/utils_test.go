@@ -1,12 +1,11 @@
-package utils_test
+package utils
 
 import (
-	"TheBook/utils"
 	"testing"
 )
 
 func TestFindProjectRoot(t *testing.T) {
-	root, err := utils.FindProjectRoot()
+	root, err := FindProjectRoot()
 	if err != nil {
 		t.Fatalf("Failed to find project root: %v", err)
 	}

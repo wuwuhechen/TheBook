@@ -32,8 +32,10 @@ func (qb *QuestionBank) GetQuestion(id int) (*Question, error) {
 
 // AddQuestion 按题目 ID 添加或替换题目。
 func (qb *QuestionBank) AddQuestion(question Question) {
+	if _, exists := qb.Questions[question.ID]; !exists {
+		qb.IDs = append(qb.IDs, question.ID)
+	}
 	qb.Questions[question.ID] = question
-	qb.IDs = append(qb.IDs, question.ID)
 }
 
 // GetAllQuestions 返回所有题目，顺序不保证。

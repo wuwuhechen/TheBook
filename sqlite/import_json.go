@@ -42,6 +42,9 @@ func ReadQuestions(path string) ([]Question, error) {
 
 	var questions []Question
 	for _, q := range que {
+		if len(q.Choices) < 4 {
+			return nil, fmt.Errorf("question ID %d has fewer than four choices", q.ID)
+		}
 		questions = append(questions, Question{
 			ID:          uint(q.ID),
 			Category:    q.Category,

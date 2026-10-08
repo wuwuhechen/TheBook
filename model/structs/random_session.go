@@ -21,8 +21,9 @@ func NewRandomSession(qm QuestionManager) *RandomSession {
 	})
 
 	return &RandomSession{
-		ID:        int(random.Int63n(900000000) + 100000000), // 生成一个 9 位随机数作为会话 ID
-		Questions: questions,
+		ID:           int(random.Int63n(900000000) + 100000000), // 生成一个 9 位随机数作为会话 ID
+		Questions:    questions,
+		CurrentIndex: 0,
 	}
 }
 

@@ -112,7 +112,7 @@ func (s *Server) HandlerGetPracticePage(c *gin.Context) {
 
 	switch c.Query("direction") {
 	case "last":
-		if practice.CurrentIndex >= 0 {
+		if practice.CurrentIndex > 0 {
 			practice.CurrentIndex--
 		}
 	case "next":
