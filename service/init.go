@@ -79,13 +79,13 @@ func InitSystem(log *logger.Logger) (*Server, error) {
 		Log:          log,
 	}
 
+	auth.InitJWT(cfg.Auth.JWTSecret)
+
 	frontEndPath := fmt.Sprintf("%s/%s", rootPath, cfg.FrontEnd.TemplatePath)
 	r, err := GinInit(frontEndPath, server, log)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize Gin: %v", err)
 	}
-
-	auth.InitJWT(cfg.Auth.JWTSecret)
 
 	server.Router = r
 
