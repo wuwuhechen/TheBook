@@ -14,5 +14,5 @@ auth:
  expiration_time: 604800
 
 sqlite:
-  database_path: "database/test.db"
+  database_path: "database/thebook.db"
 

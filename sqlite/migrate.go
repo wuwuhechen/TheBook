@@ -12,8 +12,10 @@ func Migrate(path string) error {
 		return err
 	}
 
+	db_path := fmt.Sprintf("%s/database/%s", root, path)
+
 	// 如果数据库文件已经存在，报错
-	_, err = os.Open(fmt.Sprintf("%s/database/%s", root, path))
+	_, err = os.Open(db_path)
 	if err == nil {
 		return fmt.Errorf("database file already exists: %s", path)
 	} else if !os.IsNotExist(err) {
@@ -21,12 +23,12 @@ func Migrate(path string) error {
 	}
 
 	// 创建数据库文件
-	_, err = os.Create(fmt.Sprintf("%s/database/%s", root, path))
+	_, err = os.Create(db_path)
 	if err != nil {
 		return fmt.Errorf("failed to create database file: %w", err)
 	}
 
-	db, err := OpenDatabase(fmt.Sprintf("%s/database/%s", root, path))
+	db, err := OpenDatabase(db_path)
 	if err != nil {
 		return err
 	}

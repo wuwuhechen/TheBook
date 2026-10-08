@@ -29,10 +29,6 @@ func InitSystem(log *logger.Logger) (*Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %v", err)
 	}
-	// 运行中的旧数据库可能缺少后续新增的错题本表；AutoMigrate 仅补齐缺失表/字段，不会清空已有数据。
-	if err := db.AutoMigrate(&sqlite.WrongQuestion{}); err != nil {
-		return nil, fmt.Errorf("failed to migrate wrong question table: %w", err)
-	}
 
 	SQLServer := DataInitSQLite(db)
 

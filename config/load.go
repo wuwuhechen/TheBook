@@ -10,6 +10,10 @@ import (
 func LoadConfig(path string) (*Config, error) {
 	viper.SetConfigFile(path)
 
+	viper.SetEnvPrefix("THEBOOK")
+	viper.AutomaticEnv()
+	viper.BindEnv("sqlite.database_path")
+
 	err := viper.ReadInConfig()
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %v", err)

@@ -84,7 +84,7 @@ func newAuthenticatedRequest(method, target string, body io.Reader) (*http.Reque
 
 func TestInitQuestionPage(t *testing.T) {
 
-	request := model.Request{UserID: "test_user", QuestionID: 1, Choice: 5}
+	request := model.Request{UserID: 1, QuestionID: 1, Choice: 5}
 	jsonData, err := json.Marshal(request)
 	if err != nil {
 		t.Fatalf("Failed to marshal request: %v", err)
@@ -144,7 +144,7 @@ func TestInitQuestionPage(t *testing.T) {
 func TestPostQuestionRedirect(t *testing.T) {
 
 	request := model.Request{
-		UserID:     "test_user",
+		UserID:     1,
 		QuestionID: 1,
 		Choice:     5,
 	}
@@ -273,7 +273,7 @@ func TestGetQuestionPage(t *testing.T) {
 
 func TestCheckAnswerTrue(t *testing.T) {
 	request := model.Request{
-		UserID:     "test_user",
+		UserID:     1,
 		QuestionID: 1,
 		Choice:     1,
 	}
@@ -311,7 +311,7 @@ func TestCheckAnswerTrue(t *testing.T) {
 
 func TestCheckAnswerFalse(t *testing.T) {
 	request := model.Request{
-		UserID:     "test_user",
+		UserID:     1,
 		QuestionID: 1,
 		Choice:     2,
 	}
@@ -393,7 +393,7 @@ func TestPostRandomQuestion(t *testing.T) {
 
 func TestGenerateExam(t *testing.T) {
 	request := model.Request{
-		UserID:       "test_user",
+		UserID:       1,
 		PracticeSize: 5,
 	}
 

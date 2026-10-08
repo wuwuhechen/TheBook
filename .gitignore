@@ -10,3 +10,6 @@ database/temp.db
 docs
 database/test.db
 database/your_database.db
+.cache
+command.txt
+scripts/local.ps1
