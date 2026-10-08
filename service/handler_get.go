@@ -21,6 +21,12 @@ func (s *Server) HandlerGetLoginPage(c *gin.Context) {
 
 // HandlerGetQuestionPage 渲染独立答题页面。
 func (s *Server) HandlerGetQuestionPage(c *gin.Context) {
+	userID, ok := currentUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
 	questionID, err := strconv.Atoi(c.Query("question_id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid question ID"})
@@ -31,11 +37,19 @@ func (s *Server) HandlerGetQuestionPage(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Question not found"})
 		return
 	}
-	c.HTML(http.StatusOK, "question_page.html", model.NewQuestionData(question, s.DB.GetTotalCount()))
+	pageData := model.NewQuestionData(question, s.DB.GetTotalCount())
+	pageData.SetUserID(userID)
+	c.HTML(http.StatusOK, "question_page.html", pageData)
 }
 
 // HandlerGetRandomQuestionPage 渲染随机答题会话中的当前题目并处理前后切换。
 func (s *Server) HandlerGetRandomQuestionPage(c *gin.Context) {
+	userID, ok := currentUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
 	sessionID, err := strconv.Atoi(c.Param("session_id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid random session ID"})
@@ -67,6 +81,7 @@ func (s *Server) HandlerGetRandomQuestionPage(c *gin.Context) {
 
 	pageData := model.NewQuestionData(question, len(session.Questions))
 	pageData.SetID(session.CurrentIndex + 1)
+	pageData.SetUserID(userID)
 	pageData.SetRandomSessionID(sessionID)
 	pageData.SetHasLastID(session.CurrentIndex > 0)
 	pageData.SetHasNextID(session.CurrentIndex < len(session.Questions)-1)
@@ -259,7 +274,7 @@ func (s *Server) HandlerGetWrongQuestionPage(c *gin.Context) {
 		page = parsed
 	}
 
-	const pageSize = 10
+	const pageSize = 5
 	wrongQuestions, err := s.WQ.ListWrongQuestionsByUser(userID, pageSize+1, (page-1)*pageSize)
 	if err != nil {
 		s.appLog().Error("读取错题本失败")
@@ -278,6 +293,7 @@ func (s *Server) HandlerGetWrongQuestionPage(c *gin.Context) {
 			continue
 		}
 		items = append(items, model.WrongQuestionItem{
+			QuestionID:        int(wrongQuestion.QuestionID),
 			Number:            index + 1,
 			Category:          question.Category,
 			Question:          question.Question,
@@ -289,6 +305,7 @@ func (s *Server) HandlerGetWrongQuestionPage(c *gin.Context) {
 		})
 	}
 	c.HTML(http.StatusOK, "wrong_question_page.html", model.WrongQuestionPageData{
+		UserID:   userID,
 		Items:    items,
 		Page:     page,
 		HasPrev:  page > 1,

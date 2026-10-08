@@ -11,4 +11,7 @@ type WrongQuestionManager interface {
 	RecordWrongQuestion(userID, questionID uint, wrongAt time.Time) error
 
 	ListWrongQuestionsByUser(userID uint, limit, offset int) ([]*structs.WrongQuestion, error)
+
+	// ListWrongQuestionsByIDs 查询用户错题本中指定的题目，用于重新组卷前的归属校验。
+	ListWrongQuestionsByIDs(userID uint, questionIDs []uint) ([]*structs.WrongQuestion, error)
 }

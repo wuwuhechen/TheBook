@@ -3,7 +3,7 @@ package structs
 // Request 包含客户端提交的题目与练习请求数据。
 type Request struct {
 	// UserID 字段用于存储用户的唯一标识符
-	UserID string `json:"user_id" form:"user_id"`
+	UserID int `json:"user_id" form:"user_id"`
 
 	// QuestionID 字段用于存储问题的唯一标识符
 	QuestionID int `json:"question_id" form:"question_id"`
@@ -15,4 +15,7 @@ type Request struct {
 	PracticeSize int `json:"practice_size" form:"practice_size"`
 
 	PracticeID int `json:"practice_id" form:"practice_id"`
+
+	// QuestionIDs 是从错题本挑选出来、用于重新组卷的真实题目 ID。
+	QuestionIDs []int `json:"question_ids" form:"question_ids"`
 }

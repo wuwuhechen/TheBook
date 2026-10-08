@@ -209,6 +209,10 @@ func GinInit(path string, Server *Server, log *logger.Logger) (*gin.Engine, erro
 	practiceMode.GET("/:practice_id", Server.HandlerGetPracticePage)
 	practiceMode.GET("/:practice_id/result", Server.HandlerGetPracticeResultPage)
 
+	// wrongQuestionMode 提供错题重练接口；题目归属由处理器校验。
+	wrongQuestionMode := r.Group("/wrong-questions", auth.AuthMiddleware())
+	wrongQuestionMode.POST("/practice", Server.HandlerPostWrongQuestionPractice)
+
 	return r, nil
 }
 

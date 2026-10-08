@@ -8,6 +8,9 @@ import (
 // QuestionPageData 用于在HTML模板中渲染问题页面的数据结构
 // QuestionPageData 包含渲染题目页或练习页所需的数据。
 type QuestionPageData struct {
+	// UserID 是当前登录用户的唯一标识，用于题目页提交判题请求。
+	UserID uint
+
 	// ID 字段用于存储问题的唯一标识符
 	ID int
 
@@ -118,6 +121,11 @@ func (q *QuestionPageData) SetRandomSessionID(sessionID int) {
 	q.RandomSessionID = sessionID
 }
 
+// SetUserID 设置当前登录用户的唯一标识。
+func (q *QuestionPageData) SetUserID(userID uint) {
+	q.UserID = userID
+}
+
 // SetID 设置题目显示序号。
 func (q *QuestionPageData) SetID(ID int) {
 	q.ID = ID
@@ -176,6 +184,7 @@ type PracticeHistoryPageData struct {
 
 // WrongQuestionItem 是错题本页面展示的一道题目。
 type WrongQuestionItem struct {
+	QuestionID        int       `json:"question_id"`
 	Number            int       `json:"number"`
 	Category          string    `json:"category"`
 	Question          string    `json:"question"`
@@ -188,6 +197,7 @@ type WrongQuestionItem struct {
 
 // WrongQuestionPageData 包含错题本的一页内容与分页信息。
 type WrongQuestionPageData struct {
+	UserID   uint                `json:"user_id"`
 	Items    []WrongQuestionItem `json:"items"`
 	Page     int                 `json:"page"`
 	HasPrev  bool                `json:"has_prev"`

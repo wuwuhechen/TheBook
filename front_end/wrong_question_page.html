@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>错题本 · TheBook</title>
     <link rel="icon" href="/static/favicon/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="/static/styles.css?v=20261007-wrong-questions-1">
+    <link rel="stylesheet" href="/static/styles.css?v=20261007-wrong-questions-2">
 </head>
-<body>
+<body data-wrong-question-selection-key="thebook:wrong-question-selection:{{.UserID}}">
 <main class="site-shell">
     <header class="site-header">
         <a class="brand" href="/"><span class="brand-mark">✦</span><span>TheBook</span></a>
@@ -23,14 +23,29 @@
         <p class="lead">针对复盘每一道错题，把薄弱点变成掌握点。</p>
     </section>
 
+    <section class="wrong-practice-toolbar" aria-label="错题练习操作">
+        <div>
+            <p class="eyebrow">Selected Questions</p>
+            <p id="selectedCount" class="selected-count" aria-live="polite">已选择 0 道错题</p>
+        </div>
+        <div class="wrong-practice-actions">
+            <button id="clearWrongPracticeSelection" class="btn btn-secondary" type="button" disabled>清空选择</button>
+            <button id="startWrongPractice" class="btn btn-primary" type="button" disabled>开始错题练习</button>
+        </div>
+    </section>
+
     <section class="result-list" aria-label="错题列表">
         {{if .Items}}
             {{range .Items}}
             <article class="result-item wrong-question-item">
                 <div class="question-meta">
                     <span class="category-pill">{{.Category}}</span>
-                    <span>错题 {{.Number}} · 累计错误 {{.WrongCount}} 次</span>
+                    <span>错题 {{.Number}} · ID {{.QuestionID}} · 累计错误 {{.WrongCount}} 次</span>
                 </div>
+                <label class="wrong-question-select">
+                    <input type="checkbox" name="question_ids" value="{{.QuestionID}}">
+                    <span>选择此题加入练习</span>
+                </label>
                 <h2>{{.Question}}</h2>
                 <ol class="option-list compact" type="A">{{range .Choices}}<li>{{.}}</li>{{end}}</ol>
                 <p class="status-error">需重点复习 · 最近错误：{{.LastWrongAt.Format "2006-01-02 15:04"}}</p>
@@ -52,5 +67,87 @@
         {{if .HasNext}}<a class="btn btn-ghost" href="/practice/wrong-questions?page={{.NextPage}}">下一页</a>{{end}}
     </nav>
 </main>
+<script>
+(() => {
+    const choices = Array.from(document.querySelectorAll('input[name="question_ids"]'));
+    const selectedCount = document.getElementById('selectedCount');
+    const startButton = document.getElementById('startWrongPractice');
+    const clearButton = document.getElementById('clearWrongPracticeSelection');
+    const selectionKey = document.body.dataset.wrongQuestionSelectionKey;
+
+    function loadSelectedIDs() {
+        try {
+            const storedIDs = JSON.parse(window.localStorage.getItem(selectionKey) || '[]');
+            if (!Array.isArray(storedIDs)) return new Set();
+            return new Set(storedIDs.filter((id) => Number.isInteger(id) && id > 0));
+        } catch (_) {
+            return new Set();
+        }
+    }
+
+    const selectedIDSet = loadSelectedIDs();
+
+    function saveSelectedIDs() {
+        window.localStorage.setItem(selectionKey, JSON.stringify(Array.from(selectedIDSet)));
+    }
+
+    function selectedIDs() {
+        return Array.from(selectedIDSet);
+    }
+
+    function updateSelection() {
+        const count = selectedIDs().length;
+        selectedCount.textContent = `已选择 ${count} 道错题`;
+        startButton.disabled = count === 0;
+        clearButton.disabled = count === 0;
+    }
+
+    choices.forEach((choice) => {
+        const questionID = Number(choice.value);
+        choice.checked = selectedIDSet.has(questionID);
+        choice.addEventListener('change', () => {
+            if (choice.checked) {
+                selectedIDSet.add(questionID);
+            } else {
+                selectedIDSet.delete(questionID);
+            }
+            saveSelectedIDs();
+            updateSelection();
+        });
+    });
+    clearButton.addEventListener('click', () => {
+        selectedIDSet.clear();
+        window.localStorage.removeItem(selectionKey);
+        choices.forEach((choice) => { choice.checked = false; });
+        updateSelection();
+    });
+    startButton.addEventListener('click', async () => {
+        const questionIDs = selectedIDs();
+        if (questionIDs.length === 0) return;
+
+        startButton.disabled = true;
+        startButton.textContent = '正在生成…';
+        try {
+            const response = await fetch('/wrong-questions/practice', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({question_ids: questionIDs}),
+            });
+            if (response.redirected) {
+                window.localStorage.removeItem(selectionKey);
+                window.location.assign(response.url);
+                return;
+            }
+            const result = await response.json().catch(() => ({}));
+            throw new Error(result.error || '生成错题练习失败，请稍后重试');
+        } catch (error) {
+            window.alert(error.message || '生成错题练习失败，请稍后重试');
+            startButton.textContent = '开始错题练习';
+            updateSelection();
+        }
+    });
+    updateSelection();
+})();
+</script>
 </body>
 </html>

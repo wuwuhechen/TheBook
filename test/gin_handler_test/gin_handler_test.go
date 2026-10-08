@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -24,6 +25,29 @@ var (
 	questionServer *service.Server
 	authToken      string
 )
+
+// wrongQuestionManagerStub 让错题练习处理器测试不依赖真实错题表。
+type wrongQuestionManagerStub struct {
+	ownedQuestionIDs map[uint]bool
+}
+
+func (m *wrongQuestionManagerStub) RecordWrongQuestion(uint, uint, time.Time) error {
+	return nil
+}
+
+func (m *wrongQuestionManagerStub) ListWrongQuestionsByUser(uint, int, int) ([]*model.WrongQuestion, error) {
+	return nil, nil
+}
+
+func (m *wrongQuestionManagerStub) ListWrongQuestionsByIDs(userID uint, questionIDs []uint) ([]*model.WrongQuestion, error) {
+	questions := make([]*model.WrongQuestion, 0, len(questionIDs))
+	for _, questionID := range questionIDs {
+		if m.ownedQuestionIDs[questionID] {
+			questions = append(questions, &model.WrongQuestion{UserID: userID, QuestionID: questionID})
+		}
+	}
+	return questions, nil
+}
 
 func TestMain(M *testing.M) {
 	log, closeLogger, err := logger.InitLogger("logs_test/app.log", false)
@@ -393,6 +417,55 @@ func TestGenerateExam(t *testing.T) {
 	}
 
 	t.Logf("GenerateExam response: %s", w.Body.String())
+}
+
+func TestHandlerPostWrongQuestionPractice(t *testing.T) {
+	questionIDs := questionServer.DB.GetALLQuestionIDs()
+	if len(questionIDs) == 0 {
+		t.Fatal("Expected at least one question for wrong-question practice test")
+	}
+	questionID := questionIDs[0]
+
+	server := &service.Server{
+		DB: questionServer.DB,
+		PM: model.NewPracticeBank(nil),
+		WQ: &wrongQuestionManagerStub{ownedQuestionIDs: map[uint]bool{
+			uint(questionID): true,
+		}},
+	}
+	testRouter := gin.New()
+	testRouter.POST("/wrong-questions/practice", func(c *gin.Context) {
+		c.Set("userID", uint(1))
+		server.HandlerPostWrongQuestionPractice(c)
+	})
+
+	payload, err := json.Marshal(model.Request{QuestionIDs: []int{questionID}})
+	if err != nil {
+		t.Fatalf("Failed to marshal request: %v", err)
+	}
+	req := httptest.NewRequest(http.MethodPost, "/wrong-questions/practice", bytes.NewReader(payload))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	testRouter.ServeHTTP(w, req)
+
+	if w.Code != http.StatusFound {
+		t.Fatalf("Expected status code 302, got %d: %s", w.Code, w.Body.String())
+	}
+	location := w.Header().Get("Location")
+	if !strings.HasPrefix(location, "/practice/") {
+		t.Fatalf("Expected practice redirect, got %q", location)
+	}
+	practiceID, err := strconv.Atoi(strings.TrimPrefix(location, "/practice/"))
+	if err != nil {
+		t.Fatalf("Invalid practice redirect %q: %v", location, err)
+	}
+	practice, err := server.PM.FindByID(practiceID)
+	if err != nil {
+		t.Fatalf("Expected generated practice: %v", err)
+	}
+	if practice.UserID != 1 || len(practice.Questions) != 1 || practice.Questions[0] != questionID {
+		t.Fatalf("Unexpected generated practice: %+v", practice)
+	}
 }
 
 func TestHandlerPostSubmitAnswer(t *testing.T) {

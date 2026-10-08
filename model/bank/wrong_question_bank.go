@@ -81,3 +81,30 @@ func (b *WrongQuestionBank) ListWrongQuestionsByUser(userID uint, limit, offset 
 	}
 	return questions, nil
 }
+
+// ListWrongQuestionsByIDs 返回指定用户错题本内的指定题目。
+func (b *WrongQuestionBank) ListWrongQuestionsByIDs(userID uint, questionIDs []uint) ([]*structs.WrongQuestion, error) {
+	if len(questionIDs) == 0 {
+		return []*structs.WrongQuestion{}, nil
+	}
+
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	var rows []WrongQuestionRow
+	if err := b.db.Where("user_id = ? AND question_id IN ?", userID, questionIDs).Find(&rows).Error; err != nil {
+		return nil, fmt.Errorf("failed to list selected wrong questions: %w", err)
+	}
+
+	questions := make([]*structs.WrongQuestion, 0, len(rows))
+	for _, row := range rows {
+		questions = append(questions, &structs.WrongQuestion{
+			UserID:       row.UserID,
+			QuestionID:   row.QuestionID,
+			WrongCount:   row.WrongCount,
+			FirstWrongAt: row.FirstWrongAt,
+			LastWrongAt:  row.LastWrongAt,
+		})
+	}
+	return questions, nil
+}

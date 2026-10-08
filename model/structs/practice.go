@@ -87,6 +87,28 @@ func (p *Practice) GenerateExam(qm QuestionManager, size int) *Practice {
 	}
 }
 
+// GenerateExamByQuestionIDs 根据指定的真实题目 ID 创建一套练习。
+// 调用方负责确认这些题目存在且属于当前用户的错题本。
+func (p *Practice) GenerateExamByQuestionIDs(questionIDs []int) *Practice {
+	ids := append([]int(nil), questionIDs...)
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	r.Shuffle(len(ids), func(i, j int) {
+		ids[i], ids[j] = ids[j], ids[i]
+	})
+
+	return &Practice{
+		ID:             int(r.Int63n(900000000) + 100000000),
+		TotalQuestions: len(ids),
+		CurrentIndex:   0,
+		PracticeSize:   len(ids),
+		Questions:      ids,
+		Answers:        map[int]int{},
+		StartTime:      time.Now(),
+		Duration:       60 * time.Minute,
+		Completed:      false,
+	}
+}
+
 // GetCurrentQuestionID 返回当前练习题目的真实 ID。
 func (p *Practice) GetCurrentQuestionID() int {
 	if p.CurrentIndex < len(p.Questions) {

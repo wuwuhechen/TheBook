@@ -23,6 +23,8 @@
         <h1>{{.Question}}</h1>
 
         <input type="hidden" id="explanation" value="{{.Explanation}}">
+        <input type="hidden" id="user_id" value="{{.UserID}}">
+        <input type="hidden" id="random_session_id" value="{{.RandomSessionID}}">
         <input type="hidden" id="question_id" value="{{.RealID}}">
 
         <form id="answerForm" class="answer-panel">
@@ -81,7 +83,7 @@
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
-                    user_id: 'test_user',
+                    user_id: Number(document.getElementById('user_id').value),
                     question_id: Number(document.getElementById('question_id').value),
                     choice: Number(new FormData(this).get('choice'))
                 })
