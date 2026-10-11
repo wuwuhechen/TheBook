@@ -16,10 +16,12 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
+// InitJWT 设置 JWT 签发和验证使用的密钥。
 func InitJWT(secret string) {
 	jwtSecret = []byte(secret)
 }
 
+// GenerateToken 为指定用户生成具有有效期的认证 Token。
 func GenerateToken(userID uint, userName, role, nickname string, expireDuration time.Duration) (string, error) {
 	claims := Claims{
 		UserID:   userID,
@@ -36,6 +38,7 @@ func GenerateToken(userID uint, userName, role, nickname string, expireDuration 
 	return token.SignedString(jwtSecret)
 }
 
+// ParseToken 验证并解析认证 Token 中的用户声明。
 func ParseToken(tokenString string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

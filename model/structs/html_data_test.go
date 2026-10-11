@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// TestQuestionPageDataMapsQuestionAndSetters 验证页面数据映射和设置器。
 func TestQuestionPageDataMapsQuestionAndSetters(t *testing.T) {
 	question := &Question{ID: 3, Category: "Go", Question: "question", Choices: []string{"A", "B", "C", "D"}, Explanation: "because"}
 	data := NewQuestionData(question, 5)

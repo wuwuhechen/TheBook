@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// TestUserBankSQLiteLoginUpgradesMigratedPlaintextPassword 验证登录会升级旧明文密码。
 func TestUserBankSQLiteLoginUpgradesMigratedPlaintextPassword(t *testing.T) {
 	db, err := gorm.Open(sqliteDriver.Open(":memory:"), &gorm.Config{})
 	if err != nil {

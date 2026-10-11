@@ -17,12 +17,14 @@ type QuestionProgressBank struct {
 
 var _ manager.QuestionProgressManager = (*QuestionProgressBank)(nil)
 
+// NewQuestionProgressBank 创建内存版用户答题进度仓库。
 func NewQuestionProgressBank() *QuestionProgressBank {
 	return &QuestionProgressBank{
 		questionProgresses: make(map[uint]*QuestionProgress),
 	}
 }
 
+// FindByUserID 查询用户进度，不存在时返回初始进度。
 func (b *QuestionProgressBank) FindByUserID(userID uint) (*QuestionProgress, error) {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
@@ -34,6 +36,7 @@ func (b *QuestionProgressBank) FindByUserID(userID uint) (*QuestionProgress, err
 	return progress, nil
 }
 
+// Upsert 创建或更新用户答题进度。
 func (b *QuestionProgressBank) Upsert(progress *QuestionProgress) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -42,6 +45,7 @@ func (b *QuestionProgressBank) Upsert(progress *QuestionProgress) error {
 	return nil
 }
 
+// Persist 将内存中的用户答题进度写入 JSON 文件。
 func (b *QuestionProgressBank) Persist() error {
 	b.mu.RLock()
 	defer b.mu.RUnlock()

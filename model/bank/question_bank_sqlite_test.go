@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// newQuestionSQLiteTestBank 创建带测试题目的 SQLite 题库。
 func newQuestionSQLiteTestBank(t *testing.T) *SQLiteQuestionBank {
 	t.Helper()
 	db, err := gorm.Open(sqliteDriver.Open(":memory:"), &gorm.Config{})
@@ -26,6 +27,7 @@ func newQuestionSQLiteTestBank(t *testing.T) *SQLiteQuestionBank {
 	return NewSQLiteQuestionBank(db)
 }
 
+// TestSQLiteQuestionBankReadsAndSorts 验证 SQLite 题库查询与排序。
 func TestSQLiteQuestionBankReadsAndSorts(t *testing.T) {
 	bank := newQuestionSQLiteTestBank(t)
 	question, err := bank.GetQuestion(2)
@@ -48,6 +50,7 @@ func TestSQLiteQuestionBankReadsAndSorts(t *testing.T) {
 	}
 }
 
+// TestSQLiteQuestionBankRandomQuestion 验证 SQLite 题库随机取题。
 func TestSQLiteQuestionBankRandomQuestion(t *testing.T) {
 	bank := newQuestionSQLiteTestBank(t)
 	question, err := bank.GetRandomQuestionID()

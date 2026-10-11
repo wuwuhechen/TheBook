@@ -92,6 +92,7 @@ func InitSystem(log *logger.Logger) (*Server, error) {
 	return server, nil
 }
 
+// DataInitSQLite 使用 SQLite 数据库创建各业务管理器。
 func DataInitSQLite(db *gorm.DB) *Server {
 	return &Server{
 		DB: model.NewSQLiteQuestionBank(db),
@@ -117,6 +118,7 @@ func DataInitSQLite(db *gorm.DB) *Server {
 // 	}, nil
 // }
 
+// UserInit 从用户资料和密码哈希文件初始化内存用户仓库。
 func UserInit(path, hashPath string) (*model.UserBank, error) {
 	userBank, err := LoadUsers(path)
 	if err != nil {
@@ -142,6 +144,7 @@ func UserInit(path, hashPath string) (*model.UserBank, error) {
 	return userBank, nil
 }
 
+// QuestionProgressInit 从 JSON 文件加载用户答题进度。
 func QuestionProgressInit(path string) (model.QuestionProgressManager, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -233,6 +236,7 @@ func LoadQuestions(path string) (model.QuestionManager, error) {
 	return bank, nil
 }
 
+// LoadUsers 从 JSON 文件加载用户资料到内存仓库。
 func LoadUsers(path string) (*model.UserBank, error) {
 	file, err := os.Open(path)
 	if err != nil {

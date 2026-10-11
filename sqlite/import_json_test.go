@@ -7,6 +7,7 @@ import (
 	"testing"
 )
 
+// writeFixture 在临时目录中写入 JSON 测试夹具。
 func writeFixture(t *testing.T, directory, name, content string) {
 	t.Helper()
 	if err := os.WriteFile(filepath.Join(directory, name), []byte(content), 0o600); err != nil {
@@ -14,6 +15,7 @@ func writeFixture(t *testing.T, directory, name, content string) {
 	}
 }
 
+// TestReadQuestionsRejectsQuestionWithTooFewChoices 验证题目选项不足会被拒绝。
 func TestReadQuestionsRejectsQuestionWithTooFewChoices(t *testing.T) {
 	directory := t.TempDir()
 	path := filepath.Join(directory, "questions.json")
@@ -26,6 +28,7 @@ func TestReadQuestionsRejectsQuestionWithTooFewChoices(t *testing.T) {
 	}
 }
 
+// TestMigrateDatabaseImportsAndUpsertsAllData 验证迁移导入并更新全部数据类型。
 func TestMigrateDatabaseImportsAndUpsertsAllData(t *testing.T) {
 	directory := t.TempDir()
 	writeFixture(t, directory, "data.json", `[
@@ -131,6 +134,7 @@ func TestMigrateDatabaseImportsAndUpsertsAllData(t *testing.T) {
 	}
 }
 
+// TestMigrateDatabaseAllowsMissingOptionalJSONFiles 验证可选 JSON 缺失时仍可迁移。
 func TestMigrateDatabaseAllowsMissingOptionalJSONFiles(t *testing.T) {
 	directory := t.TempDir()
 	db, err := OpenDatabase(filepath.Join(directory, "empty.db"))

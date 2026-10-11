@@ -53,6 +53,7 @@ type AuthConfig struct {
 	ExpirationTime int64 `mapstructure:"expiration_time"`
 }
 
+// String 返回配置中主要路径与认证信息的可读表示。
 func (c *Config) String() string {
 	return fmt.Sprintf("Database Path: %s\nFront End Template Path: %s\nUser Bank Path: %s\nAuth Config: %+v\n",
 		c.Database.DatabasePath, c.FrontEnd.TemplatePath, c.User.UserBankPath, c.Auth)

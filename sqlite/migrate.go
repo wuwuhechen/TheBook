@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// Migrate 创建目标数据库并导入项目中的 JSON 初始化数据。
 func Migrate(path string) error {
 	root, err := utils.FindProjectRoot()
 	if err != nil {

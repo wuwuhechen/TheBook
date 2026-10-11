@@ -11,6 +11,7 @@ type practiceTestQuestionManager struct {
 	ids       []int
 }
 
+// GetQuestion 按 ID 返回测试题库中的题目。
 func (m *practiceTestQuestionManager) GetQuestion(id int) (*Question, error) {
 	question, ok := m.questions[id]
 	if !ok {
@@ -18,7 +19,11 @@ func (m *practiceTestQuestionManager) GetQuestion(id int) (*Question, error) {
 	}
 	return &question, nil
 }
+
+// GetAllQuestionsSorted 返回按测试顺序排列的全部题目。
 func (m *practiceTestQuestionManager) GetAllQuestionsSorted() []Question { return m.GetAllQuestions() }
+
+// GetAllQuestions 返回测试题库的全部题目。
 func (m *practiceTestQuestionManager) GetAllQuestions() []Question {
 	questions := make([]Question, 0, len(m.ids))
 	for _, id := range m.ids {
@@ -26,12 +31,19 @@ func (m *practiceTestQuestionManager) GetAllQuestions() []Question {
 	}
 	return questions
 }
+
+// GetALLQuestionIDs 返回测试题目 ID 的副本。
 func (m *practiceTestQuestionManager) GetALLQuestionIDs() []int { return append([]int(nil), m.ids...) }
+
+// GetRandomQuestionID 返回固定的测试题目。
 func (m *practiceTestQuestionManager) GetRandomQuestionID() (*Question, error) {
 	return m.GetQuestion(m.ids[0])
 }
+
+// GetTotalCount 返回测试题库中的题目数量。
 func (m *practiceTestQuestionManager) GetTotalCount() int { return len(m.ids) }
 
+// newPracticeTestManager 创建包含固定题目的测试题库。
 func newPracticeTestManager() *practiceTestQuestionManager {
 	return &practiceTestQuestionManager{
 		ids: []int{10, 20, 30},
@@ -43,6 +55,7 @@ func newPracticeTestManager() *practiceTestQuestionManager {
 	}
 }
 
+// TestNewPracticeHasSafeDefaults 验证新套题的安全默认值。
 func TestNewPracticeHasSafeDefaults(t *testing.T) {
 	practice := (&Practice{}).NewPractice()
 	if practice.Answers == nil || practice.Questions == nil {
@@ -53,6 +66,7 @@ func TestNewPracticeHasSafeDefaults(t *testing.T) {
 	}
 }
 
+// TestGenerateExamUsesUniqueQuestionsAndRequestedSize 验证组卷题目唯一且数量正确。
 func TestGenerateExamUsesUniqueQuestionsAndRequestedSize(t *testing.T) {
 	manager := newPracticeTestManager()
 	practice := (&Practice{}).GenerateExam(manager, 2)
@@ -76,6 +90,7 @@ func TestGenerateExamUsesUniqueQuestionsAndRequestedSize(t *testing.T) {
 	}
 }
 
+// TestPracticeNavigationAndReset 验证套题导航边界和重置行为。
 func TestPracticeNavigationAndReset(t *testing.T) {
 	practice := &Practice{Questions: []int{10, 20, 30}, TotalQuestions: 3, CurrentIndex: 0, Answers: map[int]int{10: 1}, Completed: true}
 	if practice.GetCurrentQuestionID() != 10 || practice.LastQuestionID() != 0 || practice.NextQuestionID() != 20 {
@@ -95,6 +110,7 @@ func TestPracticeNavigationAndReset(t *testing.T) {
 	}
 }
 
+// TestPracticeCheckPracticeCountsAnswers 验证套题批改统计。
 func TestPracticeCheckPracticeCountsAnswers(t *testing.T) {
 	manager := newPracticeTestManager()
 	practice := &Practice{ID: 99, Questions: []int{10, 20, 30}, Answers: map[int]int{10: 0, 20: 0}}
@@ -107,6 +123,7 @@ func TestPracticeCheckPracticeCountsAnswers(t *testing.T) {
 	}
 }
 
+// TestGenerateExamByQuestionIDsCopiesInput 验证错题组卷复制输入切片。
 func TestGenerateExamByQuestionIDsCopiesInput(t *testing.T) {
 	ids := []int{10, 20, 30}
 	practice := (&Practice{}).GenerateExamByQuestionIDs(ids)

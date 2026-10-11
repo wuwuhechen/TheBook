@@ -5,6 +5,7 @@ import (
 	"testing"
 )
 
+// TestQuestionCheckAnswerAndString 验证题目判题和字符串表示。
 func TestQuestionCheckAnswerAndString(t *testing.T) {
 	question := Question{
 		ID: 7, Category: "Go", Question: "Go 的包名？",

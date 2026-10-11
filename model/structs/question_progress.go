@@ -8,6 +8,7 @@ type QuestionProgress struct {
 	UpdatedAt         time.Time `json:"updated_at"`
 }
 
+// NewQuestionProgress 创建指定用户的初始答题进度。
 func NewQuestionProgress(userID uint) *QuestionProgress {
 	return &QuestionProgress{
 		UserID:            userID,

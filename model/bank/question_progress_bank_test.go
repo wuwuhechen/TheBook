@@ -2,6 +2,7 @@ package bank
 
 import "testing"
 
+// TestQuestionProgressBankFindAndUpsert 验证内存进度查询和更新。
 func TestQuestionProgressBankFindAndUpsert(t *testing.T) {
 	bank := NewQuestionProgressBank()
 	newProgress, err := bank.FindByUserID(1)

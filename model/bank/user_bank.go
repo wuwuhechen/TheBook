@@ -17,6 +17,7 @@ type UserBank struct {
 
 var _ manager.UserManager = (*UserBank)(nil)
 
+// NewUserBank 创建空的内存用户仓库。
 func NewUserBank() *UserBank {
 	return &UserBank{
 		Users:          make(map[string]*User),
@@ -30,6 +31,7 @@ func (ub *UserBank) SetPasswordHash(username, passwordHash string) {
 	ub.PasswordHashes[username] = passwordHash
 }
 
+// AddUser 添加用户并保存其密码哈希。
 func (ub *UserBank) AddUser(user *User) error {
 	if user == nil {
 		return errors.New("user cannot be nil")
@@ -41,11 +43,13 @@ func (ub *UserBank) AddUser(user *User) error {
 	return nil
 }
 
+// GetUser 按用户名查询用户。
 func (ub *UserBank) GetUser(username string) (*User, bool) {
 	user, exists := ub.Users[username]
 	return user, exists
 }
 
+// RegisterUser 创建新的内存用户账户。
 func (ub *UserBank) RegisterUser(req RegisterRequest) (*User, error) {
 	if _, exists := ub.Users[req.Username]; exists {
 		return nil, fmt.Errorf("user already exists")
@@ -66,6 +70,7 @@ func (ub *UserBank) RegisterUser(req RegisterRequest) (*User, error) {
 	return user, nil
 }
 
+// LoginUser 验证内存用户账户的登录凭据。
 func (ub *UserBank) LoginUser(req LoginRequest) (*User, error) {
 	user, exists := ub.GetUser(req.Username)
 	if !exists {
@@ -80,6 +85,7 @@ func (ub *UserBank) LoginUser(req LoginRequest) (*User, error) {
 	return user, nil
 }
 
+// DeleteUser 删除指定用户名的用户账户。
 func (ub *UserBank) DeleteUser(username string) error {
 	if _, exists := ub.Users[username]; !exists {
 		return fmt.Errorf("user not found")

@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// TestAddUserPreservesZeroUserID 验证迁移用户可保留零主键。
 func TestAddUserPreservesZeroUserID(t *testing.T) {
 	db, err := gorm.Open(sqliteDriver.Open(":memory:"), &gorm.Config{})
 	if err != nil {

@@ -2,6 +2,7 @@ package bank
 
 import "testing"
 
+// TestRandomSessionBankLifecycle 验证随机会话的创建、查询、保存和删除。
 func TestRandomSessionBankLifecycle(t *testing.T) {
 	bank := NewRandomSessionBank()
 	session := &RandomSession{ID: 8, Questions: []int{1, 2}}

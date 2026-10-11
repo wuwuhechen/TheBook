@@ -41,6 +41,7 @@ type PracticeRecordRow struct {
 	SubmitTime time.Time `gorm:"not null" json:"submit_time"`
 }
 
+// NewPracticeBank 创建套题状态与记录仓库。
 func NewPracticeBank(db *gorm.DB) *PracticeBank {
 	return &PracticeBank{
 		practices: make(map[int]*Practice),
@@ -48,6 +49,7 @@ func NewPracticeBank(db *gorm.DB) *PracticeBank {
 	}
 }
 
+// Create 保存新的进行中套题。
 func (pb *PracticeBank) Create(practice *Practice) error {
 	pb.mu.Lock()
 	defer pb.mu.Unlock()
@@ -59,6 +61,7 @@ func (pb *PracticeBank) Create(practice *Practice) error {
 	return nil
 }
 
+// FindByID 查询进行中的套题。
 func (pb *PracticeBank) FindByID(id int) (*Practice, error) {
 	pb.mu.Lock()
 	defer pb.mu.Unlock()
@@ -70,6 +73,7 @@ func (pb *PracticeBank) FindByID(id int) (*Practice, error) {
 	return practice, nil
 }
 
+// Save 更新进行中套题状态。
 func (pb *PracticeBank) Save(practice *Practice) error {
 	pb.mu.Lock()
 	defer pb.mu.Unlock()
@@ -81,6 +85,7 @@ func (pb *PracticeBank) Save(practice *Practice) error {
 	return nil
 }
 
+// Delete 删除进行中的套题。
 func (pb *PracticeBank) Delete(practice *Practice) error {
 	pb.mu.Lock()
 	defer pb.mu.Unlock()
@@ -92,14 +97,17 @@ func (pb *PracticeBank) Delete(practice *Practice) error {
 	return nil
 }
 
+// TableName 返回套题记录表名称。
 func (PracticeRecordRow) TableName() string {
 	return "practice_records"
 }
 
+// TableName 返回套题答案表名称。
 func (PracticeAnswer) TableName() string {
 	return "practice_answers"
 }
 
+// convertToSQLiteStructs 将领域练习记录转换为 SQLite 记录和答案行。
 func convertToSQLiteStructs(record *PracticeRecord) (*PracticeRecordRow, []PracticeAnswer) {
 	practiceRecordRow := &PracticeRecordRow{
 		UserID:         record.UserID,
@@ -124,6 +132,7 @@ func convertToSQLiteStructs(record *PracticeRecord) (*PracticeRecordRow, []Pract
 	return practiceRecordRow, practiceAnswers
 }
 
+// Persist 在事务中持久化已完成的练习记录及其答案。
 func (pb *PracticeBank) Persist(record *PracticeRecord) error {
 	practiceRecordRow, practiceAnswers := convertToSQLiteStructs(record)
 
@@ -144,6 +153,7 @@ func (pb *PracticeBank) Persist(record *PracticeRecord) error {
 	})
 }
 
+// ListRecordsByUser 分页读取用户的练习历史记录。
 func (pb *PracticeBank) ListRecordsByUser(userID uint, limit, offset int) ([]*PracticeRecord, error) {
 	var records []PracticeRecordRow
 	if err := pb.records.Where("user_id = ?", userID).Order("submit_time DESC").Limit(limit).Offset(offset).Find(&records).Error; err != nil {
@@ -167,6 +177,7 @@ func (pb *PracticeBank) ListRecordsByUser(userID uint, limit, offset int) ([]*Pr
 	return practiceRecords, nil
 }
 
+// convertToPracticeRecord 将数据库答案行转换为领域答案记录。
 func convertToPracticeRecord(answers []manager.PracticeAnswer) []structs.AnswerRecord {
 	var answerRecords []structs.AnswerRecord
 	for _, answer := range answers {
@@ -180,6 +191,7 @@ func convertToPracticeRecord(answers []manager.PracticeAnswer) []structs.AnswerR
 	return answerRecords
 }
 
+// GetRecordByPracticeID 查询指定用户拥有的完整练习记录。
 func (pb *PracticeBank) GetRecordByPracticeID(userID uint, practiceID int) (*PracticeRecord, error) {
 	var record PracticeRecordRow
 	if err := pb.records.Where("user_id = ? AND practice_id = ?", userID, practiceID).First(&record).Error; err != nil {
@@ -207,6 +219,7 @@ func (pb *PracticeBank) GetRecordByPracticeID(userID uint, practiceID int) (*Pra
 	return practicRecord, nil
 }
 
+// ListAnswers 读取指定练习记录的全部答案行。
 func (pb *PracticeBank) ListAnswers(recordID int) ([]manager.PracticeAnswer, error) {
 	var answers []manager.PracticeAnswer
 	if err := pb.records.Where("practice_record_id = ?", recordID).Order("id ASC").Find(&answers).Error; err != nil {

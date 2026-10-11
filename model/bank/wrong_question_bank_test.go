@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// TestWrongQuestionBankRecordsAndListsQuestions 验证错题累计和查询。
 func TestWrongQuestionBankRecordsAndListsQuestions(t *testing.T) {
 	db, err := gorm.Open(sqliteDriver.Open(":memory:"), &gorm.Config{})
 	if err != nil {

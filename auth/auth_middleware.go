@@ -37,6 +37,7 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
+// redirectToLogin 终止当前请求并重定向到登录页面。
 func redirectToLogin(c *gin.Context, message string) {
 	c.Redirect(http.StatusFound, "/auth/login?message="+url.QueryEscape(message))
 	c.Abort()

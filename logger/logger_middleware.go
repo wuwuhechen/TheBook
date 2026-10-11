@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// RequestLogger 记录每个 HTTP 请求的方法、状态和耗时。
 func RequestLogger(log *Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()

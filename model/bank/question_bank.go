@@ -14,6 +14,7 @@ type QuestionBank struct {
 }
 
 // NewQuestionBank 创建空的 QuestionBank。
+// NewQuestionBank 创建空的内存题库。
 func NewQuestionBank() *QuestionBank {
 	return &QuestionBank{
 		Questions: make(map[int]Question),
@@ -22,6 +23,7 @@ func NewQuestionBank() *QuestionBank {
 }
 
 // GetQuestion 返回 id 对应的题目。
+// GetQuestion 按题目 ID 获取内存题库中的题目。
 func (qb *QuestionBank) GetQuestion(id int) (*Question, error) {
 	question, exists := qb.Questions[id]
 	if !exists {
@@ -31,6 +33,7 @@ func (qb *QuestionBank) GetQuestion(id int) (*Question, error) {
 }
 
 // AddQuestion 按题目 ID 添加或替换题目。
+// AddQuestion 添加或替换内存题库中的题目。
 func (qb *QuestionBank) AddQuestion(question Question) {
 	if _, exists := qb.Questions[question.ID]; !exists {
 		qb.IDs = append(qb.IDs, question.ID)
@@ -39,6 +42,7 @@ func (qb *QuestionBank) AddQuestion(question Question) {
 }
 
 // GetAllQuestions 返回所有题目，顺序不保证。
+// GetAllQuestions 返回题库中的全部题目副本。
 func (qb *QuestionBank) GetAllQuestions() []Question {
 	questions := make([]Question, 0, len(qb.Questions))
 	for _, question := range qb.Questions {
@@ -48,6 +52,7 @@ func (qb *QuestionBank) GetAllQuestions() []Question {
 }
 
 // GetAllQuestionsSorted 按题目 ID 顺序返回所有题目。
+// GetAllQuestionsSorted 按题目 ID 升序返回全部题目。
 func (qb *QuestionBank) GetAllQuestionsSorted() []Question {
 	sort.Ints(qb.IDs)
 
@@ -61,6 +66,7 @@ func (qb *QuestionBank) GetAllQuestionsSorted() []Question {
 }
 
 // GetRandomQuestionID 返回随机选择的一道题目。
+// GetRandomQuestionID 随机返回题库中的一道题目。
 func (qb *QuestionBank) GetRandomQuestionID() (*Question, error) {
 	if len(qb.IDs) == 0 {
 		return nil, fmt.Errorf("no questions available")
@@ -77,11 +83,13 @@ func (qb *QuestionBank) GetRandomQuestionID() (*Question, error) {
 }
 
 // GetTotalCount 返回题库中的题目数量。
+// GetTotalCount 返回题库中的题目数量。
 func (qb *QuestionBank) GetTotalCount() int {
 	return len(qb.Questions)
 }
 
 // GetALLQuestionIDs 返回题库中所有题目的 ID。
+// GetALLQuestionIDs 返回题库中全部真实题目 ID。
 func (qb *QuestionBank) GetALLQuestionIDs() []int {
 	ids := make([]int, len(qb.IDs))
 	copy(ids, qb.IDs)

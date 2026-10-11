@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// AddUser 将单个用户写入 SQLite。
 func AddUser(db *gorm.DB, user *User) error {
 	// UserID 0 is a valid legacy user ID. GORM normally treats a zero-valued
 	// primary key as auto-generated and omits it from INSERT, so select the
@@ -20,6 +21,7 @@ func AddUser(db *gorm.DB, user *User) error {
 	}).Error
 }
 
+// AddUsers 批量写入用户记录。
 func AddUsers(db *gorm.DB, users []User) error {
 	for i := range users {
 		if err := AddUser(db, &users[i]); err != nil {
@@ -29,10 +31,12 @@ func AddUsers(db *gorm.DB, users []User) error {
 	return nil
 }
 
+// AddQuestion 将单个题目写入 SQLite。
 func AddQuestion(db *gorm.DB, question *Question) error {
 	return db.Clauses(clause.OnConflict{UpdateAll: true}).Create(question).Error
 }
 
+// AddQuestions 批量写入题目记录。
 func AddQuestions(db *gorm.DB, questions []Question) error {
 	for i := range questions {
 		if err := AddQuestion(db, &questions[i]); err != nil {
@@ -95,6 +99,7 @@ func AddPracticeRecords(db *gorm.DB, records []model.PracticeRecord) error {
 	return nil
 }
 
+// AddQuestionProgress 将单个用户答题进度写入 SQLite。
 func AddQuestionProgress(db *gorm.DB, progress *QuestionProgress) error {
 	return db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "user_id"}},
@@ -102,6 +107,7 @@ func AddQuestionProgress(db *gorm.DB, progress *QuestionProgress) error {
 	}).Create(progress).Error
 }
 
+// AddQuestionProgresses 批量写入用户答题进度。
 func AddQuestionProgresses(db *gorm.DB, progresses []QuestionProgress) error {
 	for i := range progresses {
 		if err := AddQuestionProgress(db, &progresses[i]); err != nil {
@@ -111,6 +117,7 @@ func AddQuestionProgresses(db *gorm.DB, progresses []QuestionProgress) error {
 	return nil
 }
 
+// AddWrongQuestion 将单条错题记录写入 SQLite。
 func AddWrongQuestion(db *gorm.DB, wrongQuestion *WrongQuestion) error {
 	return db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "user_id"}, {Name: "question_id"}},
@@ -118,6 +125,7 @@ func AddWrongQuestion(db *gorm.DB, wrongQuestion *WrongQuestion) error {
 	}).Create(wrongQuestion).Error
 }
 
+// AddWrongQuestions 批量写入错题记录。
 func AddWrongQuestions(db *gorm.DB, wrongQuestions []WrongQuestion) error {
 	for i := range wrongQuestions {
 		if err := AddWrongQuestion(db, &wrongQuestions[i]); err != nil {

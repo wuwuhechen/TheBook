@@ -2,6 +2,7 @@ package structs
 
 import "testing"
 
+// TestRandomSessionCurrentQuestionIDBounds 验证随机会话当前题目的边界处理。
 func TestRandomSessionCurrentQuestionIDBounds(t *testing.T) {
 	session := &RandomSession{Questions: []int{10, 20}}
 	if session.CurrentQuestionID() != 10 {
@@ -19,6 +20,7 @@ func TestRandomSessionCurrentQuestionIDBounds(t *testing.T) {
 	}
 }
 
+// TestNewRandomSessionIncludesEveryQuestion 验证新随机会话包含全部题目。
 func TestNewRandomSessionIncludesEveryQuestion(t *testing.T) {
 	manager := newPracticeTestManager()
 	session := NewRandomSession(manager)

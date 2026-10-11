@@ -7,6 +7,7 @@ import (
 	"TheBook/sqlite"
 )
 
+// main 解析数据库文件名并执行数据迁移命令。
 func main() {
 	databasePath := flag.String(
 		"database",

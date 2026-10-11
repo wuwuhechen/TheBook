@@ -22,6 +22,7 @@ sqlite:
   database_path: database/test.db
 `
 
+// writeTestConfig 写入临时配置文件并返回路径。
 func writeTestConfig(t *testing.T, content string) string {
 	t.Helper()
 
@@ -32,6 +33,7 @@ func writeTestConfig(t *testing.T, content string) string {
 	return path
 }
 
+// TestLoadConfig 验证有效 YAML 配置可被解析。
 func TestLoadConfig(t *testing.T) {
 	t.Setenv("THEBOOK_SQLITE_DATABASE_PATH", "")
 
@@ -57,6 +59,7 @@ func TestLoadConfig(t *testing.T) {
 	}
 }
 
+// TestLoadConfigUsesSQLiteEnvironmentOverride 验证环境变量覆盖 SQLite 路径。
 func TestLoadConfigUsesSQLiteEnvironmentOverride(t *testing.T) {
 	t.Setenv("THEBOOK_SQLITE_DATABASE_PATH", "database/overridden.db")
 
@@ -69,6 +72,7 @@ func TestLoadConfigUsesSQLiteEnvironmentOverride(t *testing.T) {
 	}
 }
 
+// TestLoadConfigReturnsErrorForMissingFile 验证缺失配置文件返回错误。
 func TestLoadConfigReturnsErrorForMissingFile(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "missing.yaml")
 
@@ -77,6 +81,7 @@ func TestLoadConfigReturnsErrorForMissingFile(t *testing.T) {
 	}
 }
 
+// TestLoadConfigReturnsErrorForInvalidYAML 验证非法 YAML 返回错误。
 func TestLoadConfigReturnsErrorForInvalidYAML(t *testing.T) {
 	path := writeTestConfig(t, "sqlite:\n  database_path: [unterminated\n")
 
@@ -85,6 +90,7 @@ func TestLoadConfigReturnsErrorForInvalidYAML(t *testing.T) {
 	}
 }
 
+// TestConfigString 验证配置字符串包含主要字段。
 func TestConfigString(t *testing.T) {
 	cfg := &Config{
 		Database: DatabaseConfig{DatabasePath: "database/questions.json"},

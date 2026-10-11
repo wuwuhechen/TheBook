@@ -8,6 +8,7 @@ import (
 	"fmt"
 )
 
+// main 初始化日志和服务，并启动本地 HTTP 服务器。
 func main() {
 	rootPath, err := utils.FindProjectRoot()
 	if err != nil {

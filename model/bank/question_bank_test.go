@@ -2,6 +2,7 @@ package bank
 
 import "testing"
 
+// TestQuestionBankAddReplaceAndRead 验证内存题库的添加、替换和读取。
 func TestQuestionBankAddReplaceAndRead(t *testing.T) {
 	bank := NewQuestionBank()
 	bank.AddQuestion(Question{ID: 2, Question: "old"})
@@ -30,6 +31,7 @@ func TestQuestionBankAddReplaceAndRead(t *testing.T) {
 	}
 }
 
+// TestQuestionBankRandomQuestion 验证内存题库的随机取题。
 func TestQuestionBankRandomQuestion(t *testing.T) {
 	empty := NewQuestionBank()
 	if _, err := empty.GetRandomQuestionID(); err == nil {

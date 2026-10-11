@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// ReadUsers 从 JSON 文件读取用户记录。
 func ReadUsers(path string) ([]User, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -27,6 +28,7 @@ func ReadUsers(path string) ([]User, error) {
 	return users, nil
 }
 
+// ReadQuestions 从 JSON 文件读取题目记录。
 func ReadQuestions(path string) ([]Question, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -78,6 +80,7 @@ func ReadPracticeRecords(path string) ([]model.PracticeRecord, error) {
 	return records, nil
 }
 
+// ReadQuestionProgress 从 JSON 文件读取用户答题进度。
 func ReadQuestionProgress(path string) ([]QuestionProgress, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -93,6 +96,7 @@ func ReadQuestionProgress(path string) ([]QuestionProgress, error) {
 	return progresses, nil
 }
 
+// ReadWrongQuestions 从 JSON 文件读取错题记录。
 func ReadWrongQuestions(path string) ([]WrongQuestion, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -107,6 +111,7 @@ func ReadWrongQuestions(path string) ([]WrongQuestion, error) {
 	return wrongQuestions, nil
 }
 
+// MigrateDatabase 将 JSON 数据导入并更新到已迁移的 SQLite 数据库。
 func MigrateDatabase(db *gorm.DB, dataPath string) error {
 	fmt.Println("Migrating data from JSON files to SQLite database...")
 
@@ -183,6 +188,7 @@ func MigrateDatabase(db *gorm.DB, dataPath string) error {
 	return nil
 }
 
+// isBcryptPassword 判断迁移密码是否已经是 bcrypt 哈希。
 func isBcryptPassword(password string) bool {
 	return len(password) >= 4 &&
 		(password[:4] == "$2a$" || password[:4] == "$2b$" || password[:4] == "$2y$")

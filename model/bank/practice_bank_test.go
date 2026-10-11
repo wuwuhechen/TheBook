@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// TestPracticeBankPersistUsesMigratedTables 验证练习记录写入迁移后的表。
 func TestPracticeBankPersistUsesMigratedTables(t *testing.T) {
 	db, err := gorm.Open(sqliteDriver.Open(":memory:"), &gorm.Config{})
 	if err != nil {

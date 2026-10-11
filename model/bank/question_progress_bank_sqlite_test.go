@@ -18,8 +18,10 @@ type progressTestRow struct {
 	UpdatedAt         time.Time `gorm:"not null"`
 }
 
+// TableName 返回测试进度记录对应的数据表名称。
 func (progressTestRow) TableName() string { return "question_progresses" }
 
+// TestQuestionProgressBankSQLiteFindAndUpsert 验证 SQLite 进度查询和更新。
 func TestQuestionProgressBankSQLiteFindAndUpsert(t *testing.T) {
 	db, err := gorm.Open(sqliteDriver.Open(":memory:"), &gorm.Config{})
 	if err != nil {

@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap/zaptest/observer"
 )
 
+// TestNewRotatingWriterConfiguration 验证日志轮转配置。
 func TestNewRotatingWriterConfiguration(t *testing.T) {
 	writer := newRotatingWriter("logs/app.log")
 
@@ -24,6 +25,7 @@ func TestNewRotatingWriterConfiguration(t *testing.T) {
 	}
 }
 
+// TestInitLoggerWritesExpectedLogFiles 验证日志初始化会创建预期文件。
 func TestInitLoggerWritesExpectedLogFiles(t *testing.T) {
 	logPath := filepath.Join(t.TempDir(), "logs", "app.log")
 	log, closeLog, err := InitLogger(logPath, false)
@@ -55,6 +57,7 @@ func TestInitLoggerWritesExpectedLogFiles(t *testing.T) {
 	}
 }
 
+// TestRequestLoggerRecordsStatusLevelAndFields 验证请求日志级别和字段。
 func TestRequestLoggerRecordsStatusLevelAndFields(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 

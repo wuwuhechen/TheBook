@@ -21,6 +21,7 @@ type WrongQuestionRow struct {
 	LastWrongAt  time.Time `gorm:"not null" json:"last_wrong_at"`
 }
 
+// TableName 返回错题记录表名称。
 func (WrongQuestionRow) TableName() string {
 	return "wrong_questions"
 }
@@ -33,6 +34,7 @@ type WrongQuestionBank struct {
 
 var _ manager.WrongQuestionManager = (*WrongQuestionBank)(nil)
 
+// NewWrongQuestionBank 创建 SQLite 错题本仓库。
 func NewWrongQuestionBank(db *gorm.DB) *WrongQuestionBank {
 	return &WrongQuestionBank{db: db}
 }

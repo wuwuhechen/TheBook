@@ -18,24 +18,28 @@ type UserBankSQLite struct {
 
 var _ manager.UserManager = (*UserBankSQLite)(nil)
 
+// NewUserBankSQLite 创建 SQLite 用户仓库。
 func NewUserBankSQLite(db *gorm.DB) *UserBankSQLite {
 	return &UserBankSQLite{
 		db: db,
 	}
 }
 
+// AddUser 将用户写入 SQLite。
 func (ub *UserBankSQLite) AddUser(user *User) error {
 	ub.mu.Lock()
 	defer ub.mu.Unlock()
 	return ub.db.Create(user).Error
 }
 
+// SetPasswordHash 更新指定用户的密码哈希。
 func (ub *UserBankSQLite) SetPasswordHash(username, passwordHash string) error {
 	ub.mu.Lock()
 	defer ub.mu.Unlock()
 	return ub.db.Model(&User{}).Where("username = ?", username).Update("password", passwordHash).Error
 }
 
+// RegisterUser 创建并持久化 SQLite 用户账户。
 func (ub *UserBankSQLite) RegisterUser(req RegisterRequest) (*User, error) {
 	ub.mu.Lock()
 	defer ub.mu.Unlock()
@@ -65,6 +69,7 @@ func (ub *UserBankSQLite) RegisterUser(req RegisterRequest) (*User, error) {
 	return user, nil
 }
 
+// GetUser 按用户名从 SQLite 查询用户。
 func (ub *UserBankSQLite) GetUser(username string) (*User, bool) {
 	ub.mu.Lock()
 	defer ub.mu.Unlock()
@@ -78,6 +83,7 @@ func (ub *UserBankSQLite) GetUser(username string) (*User, bool) {
 	return &user, true
 }
 
+// LoginUser 验证 SQLite 用户密码并升级旧明文密码。
 func (ub *UserBankSQLite) LoginUser(req LoginRequest) (*User, error) {
 	user, exist := ub.GetUser(req.Username)
 	if !exist {
@@ -107,12 +113,14 @@ func (ub *UserBankSQLite) LoginUser(req LoginRequest) (*User, error) {
 	return user, nil
 }
 
+// isBcryptHash 判断字符串是否具有 bcrypt 哈希前缀。
 func isBcryptHash(password string) bool {
 	return strings.HasPrefix(password, "$2a$") ||
 		strings.HasPrefix(password, "$2b$") ||
 		strings.HasPrefix(password, "$2y$")
 }
 
+// DeleteUser 从 SQLite 删除指定用户。
 func (ub *UserBankSQLite) DeleteUser(username string) error {
 	ub.mu.Lock()
 	defer ub.mu.Unlock()

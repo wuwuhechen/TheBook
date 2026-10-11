@@ -83,6 +83,7 @@ func InitLogger(loggerPath string, development bool) (*Logger, func(), error) {
 	}, nil
 }
 
+// newRotatingWriter 创建具有固定保留策略的日志轮转写入器。
 func newRotatingWriter(path string) *lumberjack.Logger {
 	return &lumberjack.Logger{
 		Filename:   path,

@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// closeTestDatabase 关闭测试数据库连接。
 func closeTestDatabase(t *testing.T, db *gorm.DB) {
 	t.Helper()
 	sqlDB, err := db.DB()
@@ -20,6 +21,7 @@ func closeTestDatabase(t *testing.T, db *gorm.DB) {
 	})
 }
 
+// TestOpenDatabaseAndCreateDatabase 验证数据库打开和模型迁移。
 func TestOpenDatabaseAndCreateDatabase(t *testing.T) {
 	db, err := OpenDatabase(filepath.Join(t.TempDir(), "thebook.db"))
 	if err != nil {

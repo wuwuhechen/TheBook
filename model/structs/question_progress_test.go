@@ -2,6 +2,7 @@ package structs
 
 import "testing"
 
+// TestNewQuestionProgress 验证初始答题进度内容。
 func TestNewQuestionProgress(t *testing.T) {
 	progress := NewQuestionProgress(42)
 	if progress.UserID != 42 || progress.CurrentQuestionID != 0 || progress.UpdatedAt.IsZero() {

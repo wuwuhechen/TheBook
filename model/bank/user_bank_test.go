@@ -2,6 +2,7 @@ package bank
 
 import "testing"
 
+// TestUserBankRegisterLoginAndDelete 验证内存用户注册、登录和删除。
 func TestUserBankRegisterLoginAndDelete(t *testing.T) {
 	bank := NewUserBank()
 	if err := bank.AddUser(nil); err == nil {

@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TestHashPasswordAndVerifyPassword 验证密码哈希与校验流程。
 func TestHashPasswordAndVerifyPassword(t *testing.T) {
 	hash, err := HashPassword("correct-password")
 	if err != nil {
@@ -25,6 +26,7 @@ func TestHashPasswordAndVerifyPassword(t *testing.T) {
 	}
 }
 
+// TestGenerateAndParseToken 验证 JWT 的生成和解析。
 func TestGenerateAndParseToken(t *testing.T) {
 	InitJWT("auth-test-secret")
 
@@ -45,6 +47,7 @@ func TestGenerateAndParseToken(t *testing.T) {
 	}
 }
 
+// TestParseTokenRejectsExpiredAndTamperedToken 验证过期和篡改 Token 会被拒绝。
 func TestParseTokenRejectsExpiredAndTamperedToken(t *testing.T) {
 	InitJWT("auth-test-secret")
 
@@ -65,6 +68,7 @@ func TestParseTokenRejectsExpiredAndTamperedToken(t *testing.T) {
 	}
 }
 
+// TestAuthMiddleware 验证认证中间件的拒绝和放行行为。
 func TestAuthMiddleware(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	InitJWT("auth-test-secret")
