@@ -52,3 +52,45 @@ func TestPracticePostInitAnswerAndSubmit(t *testing.T) {
 		t.Fatalf("unanswered question missing from wrong bank: %+v, %v", wrong, err)
 	}
 }
+
+// TestPracticeSubmitPersistsOwnedResult 验证只有套题所有者可提交，且提交结果会被隔离持久化。
+func TestPracticeSubmitPersistsOwnedResult(t *testing.T) {
+	f := shared.NewFixture(t)
+	p := shared.NewPractice(t, f, 502, 1, 1, 2)
+	p.Answers[1] = 1
+
+	w := shared.Serve(f, f.RequestAs(t, 2, http.MethodPost, "/practice/502/submit", nil))
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("non-owner submit: got %d: %s", w.Code, w.Body.String())
+	}
+	if p.Completed {
+		t.Fatal("non-owner submit marked practice as completed")
+	}
+	if _, err := f.Server.PM.GetRecordByPracticeID(1, p.ID); err == nil {
+		t.Fatal("non-owner submit unexpectedly persisted a practice record")
+	}
+
+	w = shared.Serve(f, f.Request(http.MethodPost, "/practice/502/submit", nil))
+	if w.Code != http.StatusOK {
+		t.Fatalf("owner submit failed: got %d: %s", w.Code, w.Body.String())
+	}
+	record, err := f.Server.PM.GetRecordByPracticeID(1, p.ID)
+	if err != nil {
+		t.Fatalf("load persisted record: %v", err)
+	}
+	if record.TotalQuestions != 2 || record.CorrectCount != 1 || record.WrongCount != 1 || len(record.Answers) != 2 {
+		t.Fatalf("unexpected persisted record: %+v", record)
+	}
+	if _, err := f.Server.PM.GetRecordByPracticeID(2, p.ID); err == nil {
+		t.Fatal("another user can read the owner's practice record")
+	}
+
+	ownerWrongQuestions, err := f.Server.WQ.ListWrongQuestionsByUser(1, 10, 0)
+	if err != nil || len(ownerWrongQuestions) != 1 || ownerWrongQuestions[0].QuestionID != 2 {
+		t.Fatalf("owner wrong questions: %+v, %v", ownerWrongQuestions, err)
+	}
+	otherWrongQuestions, err := f.Server.WQ.ListWrongQuestionsByUser(2, 10, 0)
+	if err != nil || len(otherWrongQuestions) != 0 {
+		t.Fatalf("wrong questions leaked to another user: %+v, %v", otherWrongQuestions, err)
+	}
+}

@@ -13,3 +13,5 @@ database/your_database.db
 .cache
 command.txt
 scripts/local.ps1
+coverage
+coverage.out
